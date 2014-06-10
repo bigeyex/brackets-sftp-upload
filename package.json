@@ -1,0 +1,12 @@
+{
+    "name": "bigeyex.brackets-sftp-upload",
+    "title": "SFtpUpload",
+    "description": "Upload changed files your project to the server via SFTP, you have total control over which to upload",
+    "homepage": "https://github.com/bigeyex/brackets-sftp-upload",
+    "version": "1.0.0",
+    "author": "Wang Yu <bigeyex@gmail.com> (http://www.mit.edu/~wangyu/)",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.24.0"
+    }
+}

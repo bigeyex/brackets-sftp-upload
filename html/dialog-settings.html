@@ -1,0 +1,54 @@
+<div id="autoprefixer-settings-dialog" class="modal">
+	<div class="modal-header">
+		<h1 class="dialog-title">{{ Strings.SETTINGS_DIALOG_TITLE }}</h1>
+	</div>
+	
+	<div class="modal-body table-striped tab-content sftp-upload-server-config-form">
+		<div class="field-container server">
+                <label>
+                    Type:
+                    
+                </label>
+                <select>
+                        <option value="ftp">Ftp</option>
+                        <option value="sftp" selected>Sftp</option>
+                    </select>
+            </div>
+            <div class="field-container server">
+                <label>
+                    Server:
+                </label>
+                <input type="text"/>
+            </div>
+            <div class="field-container port">
+                <label>
+                    Port: 
+                </label>
+                <input type="text"/>
+            </div>
+            <div class="field-container username">
+                <label>
+                    User Name: 
+                </label>
+                <input type="text"/>
+            </div>
+            <div class="field-container username">
+                <label>
+                    Password: 
+                </label>
+                <input type="password"/>
+            </div>
+            <div class="field-container future">
+                <label>
+                    <input type="checkbox"/>
+                    Save for Future Use 
+                </label>
+                
+            </div>
+	</div>
+	
+	<div class="modal-footer">
+		<button data-button-id="ok" class="dialog-button btn primary">{{ Strings.OK }}</button>
+		<button data-button-id="cancel" class="dialog-button btn">{{ Strings.CANCEL }}</button>
+	</div>
+</div>
