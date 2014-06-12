@@ -1,17 +1,32 @@
 define( {
-    // EXTENSION.
-	EXTENSION_NAME: "任务列表",
+	// EXTENSION.
+	EXTENSION_NAME: "SFTP 上传",
     
+    // MENUS
+    UPLOAD_MENU_NAME: "通过SFTP上传",
+    DOWNLOAD_MENU_NAME: "从服务器下载",
+	
 	// GENERAL.
-	YES: "是",
-	NO:  "否",
+	YES:    "是",
+	NO:     "否",
+	OK:     "确定",
+	CANCEL: "取消",
+	UPLOAD: "上传",
+	SKIP:   "忽略",
 	
 	// TOOLBAR.
-	EXPAND_ALL:    "展开所有",
-	COLLAPSE_ALL:  "收缩所有",
-	SHOW_OR_HIDE:  "显示/隐藏",
+	SERVER_SETUP: "服务器设置",
+	UPLOAD_ALL: "全部上传",
+	SKIP_ALL: "全部忽略",
 	
-	// FILE DIALOG.
-	FILE_DIALOG_TITLE:   "创建.todo文件？",
-	FILE_DIALOG_MESSAGE: "当前工程目录没有.todo文件。是否需要创建？"
+	// SETTINGS DIALOG.
+	SETTINGS_DIALOG_TITLE:        "SFTP 设置",
+	SETTINGS_DIALOG_TYPE:    	  "类型",
+	SETTINGS_DIALOG_TYPE_FTP: 	  "FTP",
+	SETTINGS_DIALOG_TYPE_SFTP:    "Sftp(SSH)",
+	SETTINGS_DIALOG_HOST: 		  "服务器地址",
+	SETTINGS_DIALOG_PORT: 		  "端口",
+	SETTINGS_DIALOG_USERNAME: 	  "用户名",
+	SETTINGS_DIALOG_PASSWORD: 	  "密码",
+	SETTINGS_DIALOG_PATH: 		  "服务器目录"
 } );
