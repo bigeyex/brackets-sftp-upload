@@ -6,17 +6,16 @@ define( function( require, exports ) {
 		
 		// Extension modules.
 		Strings = require( 'modules/Strings' ),
+        dataStorage = require( 'modules/DataStorageManager' ),
 		settingsDialogTemplate = require( 'text!../html/dialog-settings.html' ),
 		
 		// Variables.
-		dialog,
-		preferences;
+		dialog;
 	
 	/**
 	 * Set each value of the preferences in dialog.
 	 */
 	function setValues( values ) {
-		$( '#todo-settings-regex-prefix' ).val( values.regex.prefix );
 	}
 	
 	/**
@@ -29,15 +28,20 @@ define( function( require, exports ) {
 	/**
 	 * Exposed method to show dialog.
 	 */
-	exports.showDialog = function( prefs ) {
+	exports.showDialog = function() {
 		// Compile dialog template.
+        var serverInfo = dataStorage.get('server_info');
+        if(!serverInfo){
+            serverInfo = {method:'sftp', host:'', port:'22', username:'', password:''};
+        }
+        
 		var compiledTemplate = Mustache.render( settingsDialogTemplate, {
-			Strings: Strings
+			Strings: Strings,
+            info: serverInfo
 		} );
 		
 		// Save dialog to variable.
 		dialog = Dialogs.showModalDialogUsingTemplate( compiledTemplate );
-		preferences = prefs;
 		
 		// Initialize dialog values.
 		init();
@@ -47,9 +51,15 @@ define( function( require, exports ) {
 			// Save preferences if OK button was clicked.
 			if ( buttonId === 'ok' ) {
 				var $dialog = dialog.getElement();
-				
-				// Save each preference.
-				//preferences.setValue( 'regex.prefix', $( '#todo-settings-regex-prefix', $dialog ).val() );
+				var serverInfo = {
+                    method: $('.input-method', $dialog).val(),
+                    host: $('.input-host', $dialog).val(),
+                    port: $('.input-port', $dialog).val(),
+                    username: $('.input-username', $dialog).val(),
+                    password: $('.input-password', $dialog).val(),
+                    path: $('.input-path', $dialog).val()
+                }
+                dataStorage.set('server_info', serverInfo);
 			}
 		});
 	};

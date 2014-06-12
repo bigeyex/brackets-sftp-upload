@@ -1,3 +1,7 @@
+#brackets-sftp-upload .status-stab{
+    color: #555;
+}
+
 .brackets-sftp-upload table {
 	width: 100%;
 	position: relative;
@@ -5,6 +9,10 @@
 
 .brackets-sftp-upload td {
 	vertical-align: middle;
+}
+
+.brackets-sftp-upload td.filename{
+    padding-left: 20px;
 }
 
 .brackets-sftp-upload .done {
@@ -185,3 +193,4 @@
     width: 210px;
     margin-top: 7px;
 }
+

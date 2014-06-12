@@ -20,7 +20,7 @@ define( function( require, exports, module ) {
         dataCache = JSON.parse(text);
     })
     .fail(function (errorCode) {
-        dataCache = [];
+        dataCache = {};
         FileUtils.writeText(FileSystem.getFileForPath(fileUri), '{}');
     });
     

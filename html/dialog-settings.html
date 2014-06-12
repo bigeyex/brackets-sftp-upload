@@ -2,50 +2,50 @@
 	<div class="modal-header">
 		<h1 class="dialog-title">{{ Strings.SETTINGS_DIALOG_TITLE }}</h1>
 	</div>
-	
+    {{#info}}
 	<div class="modal-body table-striped tab-content sftp-upload-server-config-form">
 		<div class="field-container server">
                 <label>
-                    Type:
+                    {{ Strings.SETTINGS_DIALOG_TYPE }}:
                     
                 </label>
-                <select>
-                        <option value="ftp">Ftp</option>
-                        <option value="sftp" selected>Sftp</option>
-                    </select>
+                <select class="input-method" value="{{method}}">
+                        <option value="ftp">{{ Strings.SETTINGS_DIALOG_TYPE_FTP }}</option>
+                        <option value="sftp" selected>{{ Strings.SETTINGS_DIALOG_TYPE_SFTP }}</option>
+                </select>
             </div>
             <div class="field-container server">
                 <label>
-                    Server:
+                    {{ Strings.SETTINGS_DIALOG_HOST }}:
                 </label>
-                <input type="text"/>
+                <input type="text" class="input-host" value="{{host}}"/>
             </div>
             <div class="field-container port">
                 <label>
-                    Port: 
+                    {{ Strings.SETTINGS_DIALOG_PORT }}: 
                 </label>
-                <input type="text"/>
+                <input type="text" class="input-port" value="{{port}}"/>
             </div>
             <div class="field-container username">
                 <label>
-                    User Name: 
+                    {{ Strings.SETTINGS_DIALOG_USERNAME }}: 
                 </label>
-                <input type="text"/>
+                <input type="text" class="input-username" value="{{username}}"/>
             </div>
             <div class="field-container username">
                 <label>
-                    Password: 
+                    {{ Strings.SETTINGS_DIALOG_PASSWORD }}: 
                 </label>
-                <input type="password"/>
+                <input type="password" class="input-password"/>
             </div>
-            <div class="field-container future">
+            <div class="field-container username">
                 <label>
-                    <input type="checkbox"/>
-                    Save for Future Use 
+                    {{ Strings.SETTINGS_DIALOG_PATH }}: 
                 </label>
-                
+                <input type="text" class="input-path" value="{{path}}"/>
             </div>
 	</div>
+    {{/info}}
 	
 	<div class="modal-footer">
 		<button data-button-id="ok" class="dialog-button btn primary">{{ Strings.OK }}</button>

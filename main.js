@@ -23,9 +23,11 @@ define( function( require, exports, module ) {
 		FileUtils = brackets.getModule( 'file/FileUtils' ),
 		FileSystem = brackets.getModule( 'filesystem/FileSystem' ),
 		ExtensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
+        NodeDomain = brackets.getModule("utils/NodeDomain"),
 		
 		// Extension basics.
 		COMMAND_ID = 'bigeyex.bracketsSFTPUpload.enable',
+        COMMAND_ID_UPLOAD = 'bigeyex.bracketsSFTPUpload.upload',
 
 		Strings = require( 'modules/Strings' ),
         dataStorage = require( 'modules/DataStorageManager' ),
@@ -36,30 +38,40 @@ define( function( require, exports, module ) {
 		
 		// Mustache templates.
 		todoPanelTemplate = require( 'text!html/panel.html' ),
-		todoResultsTemplate = require( 'text!html/results.html' ),
 		todoRowTemplate = require( 'text!html/row.html' ),
-		todoToolbarTemplate = require( 'text!html/tools.html' ),
 		
 		// Setup extension.
         serverInfo, //sftp username/password etc;
-        changedFiles,
 		$todoPanel,
+        projectUrl,
 		$todoIcon = $( '<a href="#" title="' + Strings.EXTENSION_NAME + '" id="brackets-sftp-upload-icon"></a>' ),
 		
 		// Get view menu.
-		menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU );
+		menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU ),
+        contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
 	
 	// Define preferences.
 	preferences.definePreference( 'enabled', 'boolean', false );
+    
+    // Get Node module domain
+    var _domainPath = ExtensionUtils.getModulePath(module, "node/SftpUploadDomain"); 
+    var _nodeDomain = new NodeDomain("sftpUpload", _domainPath);
 	
 	// Register extension.
-	CommandManager.register( Strings.EXTENSION_NAME, COMMAND_ID, togglePanel );
-	
+    CommandManager.register( Strings.EXTENSION_NAME, COMMAND_ID, togglePanel );
+	CommandManager.register( Strings.UPLOAD_MENU_NAME, COMMAND_ID_UPLOAD, uploadMenuAction );
+    
+    
 	// Add command to menu.
 	if ( menu !== undefined ) {
 		menu.addMenuDivider();
 		menu.addMenuItem( COMMAND_ID, 'Ctrl-Alt-U' );
 	}
+    
+    if ( contextMenu !== undefined ) {
+        contextMenu.addMenuDivider();
+        contextMenu.addMenuItem( COMMAND_ID_UPLOAD );
+    }
 	
 	// Load stylesheet.
 	ExtensionUtils.loadStyleSheet( module, 'todo.css' );
@@ -67,11 +79,24 @@ define( function( require, exports, module ) {
 	/** 
 	 * Set state of extension.
 	 */
+    // this is a menu item
 	function togglePanel() {
 		var enabled = preferences.get( 'enabled' );
 		
 		enablePanel( !enabled );
 	}
+    
+    function uploadMenuAction(){
+        var item = ProjectManager.getSelectedItem();
+        var projectUrl = ProjectManager.getProjectRoot().fullPath;
+        var remotePath = item.fullPath.replace(projectUrl, '');
+        if(item.isFile){
+            uploadItem(item.fullPath, remotePath);
+        }
+        else{
+            uploadDirectory(item.fullPath, remotePath);
+        }
+    }
 	
 	/** 
 	 * Initialize extension.
@@ -101,19 +126,90 @@ define( function( require, exports, module ) {
 		CommandManager.get( COMMAND_ID ).setChecked( enabled );
 	}
 	
-	/**
-	 * Check for settings file and load if it exists.
-	 */
+	// this is called every time the panel opens.
 	function loadSettings( callback ) {
-        serverInfo = dataStorage.get('server_info');
-        changedFiles = dataStorage.get('changed_files');
+        var changedFiles = dataStorage.get('changed_files');
+        var files = [];
+        var projectUrl = ProjectManager.getProjectRoot().fullPath;
+        for(var filepath in changedFiles){
+            files.push({
+                path: filepath,
+                file: filepath.replace(projectUrl, '')
+            });
+        }
         
-        $('#btn-server-setup').click(function(){
-            settingsDialog.showDialog();
+        $('#sftp-upload-tbody').empty().append(Mustache.render( todoRowTemplate, {
+				strings: Strings,
+                files: files
+        } ));
+        
+        $('#sftp-upload-tbody tr').off().on('click', function(){
+            var fullPath = $(this).attr('x-file');
+            CommandManager.execute( Commands.FILE_OPEN, { fullPath: fullPath } );
+        });
+        
+        $('#sftp-upload-tbody .upload-button').off().on('click', function(e){
+            uploadItem($(this).attr('x-file'), $(this).attr('r-file'));
+            e.stopPropagation();
+        });
+        
+        $('#sftp-upload-tbody .skip-button').off().on('click', function(e){
+            skipItem($(this).attr('x-file'));
+            e.stopPropagation();
         });
         
         if ( callback ) { callback(); }
 	}
+    
+    // upload ONE file to the server
+    function uploadItem(localPath, remotePath){
+        var serverInfo = dataStorage.get('server_info');
+        _nodeDomain.exec('upload', localPath, remotePath, serverInfo).fail(function(err){
+            updateStatus(err);
+        });;
+    }
+    
+    function uploadDirectory(localPath, remotePath){
+        var serverInfo = dataStorage.get('server_info');
+        _nodeDomain.exec('uploadDirectory', localPath, remotePath, serverInfo).fail(function(err){
+            updateStatus(err);
+        });;
+    }
+    
+    // upload all files in the panel to the server
+    function uploadAllItems(){
+        var serverInfo = dataStorage.get('server_info');
+        var trs = $('#brackets-sftp-upload tr .upload-button');
+        var filelist = [];
+        for(var i=0;i<trs.length;i++){
+            var arg = {
+                localPath: $(trs[i]).attr('x-file'),
+                remotePath: $(trs[i]).attr('r-file')
+            };
+            filelist.push(arg);
+        }
+        _nodeDomain.exec('uploadAll', filelist, serverInfo).fail(function(err){
+            updateStatus(err);
+        });
+    }
+    
+    function skipItem(path) {
+        var changedFiles = dataStorage.get('changed_files');
+        $('#brackets-sftp-upload tr[x-file="'+path+'"]').remove();
+        if(path in changedFiles){
+            delete changedFiles[path];
+            dataStorage.set('changed_files', changedFiles);
+        }
+    }
+    
+    function skipAllItems(){
+        $('#brackets-sftp-upload tr').remove();
+        dataStorage.set('changed_files', {});
+    }
+    
+    function updateStatus(status){
+        $('#brackets-sftp-upload .status-stab').text(status);
+    }
 	
 	/**
 	 * Listen for save or refresh and look for todos when needed.
@@ -126,14 +222,26 @@ define( function( require, exports, module ) {
 		$documentManager
 			.on( 'documentSaved.todo', function( event, document ) {
 				//TODO: add current document to change list
-			} );
+                var path = document.file.fullPath;
+                var changedFiles = dataStorage.get('changed_files');
+                if(changedFiles === null){
+                    changedFiles = {};
+                }
+                if(!(path in changedFiles)){
+                    changedFiles[path]=1;
+                    var projectUrl = ProjectManager.getProjectRoot().fullPath;
+                    dataStorage.set('changed_files', changedFiles);
+                    $('#sftp-upload-tbody').append(Mustache.render( todoRowTemplate, {
+                            strings: Strings,
+                            files: [{
+                                path: path,
+                                file: path.replace(projectUrl, '')
+                            }]
+                    }));
+                }
+                
+			} ); 
 		
-		// Reload settings when new project is loaded.
-		$projectManager.on( 'projectOpen.todo', function() {
-			loadSettings( function() {
-				// Reset file visibility.
-			} );
-		} );
 	}
 	
 	// Register panel and setup event listeners.
@@ -159,10 +267,35 @@ define( function( require, exports, module ) {
 		$todoIcon.click( function() {
 			CommandManager.execute( COMMAND_ID );
 		} ).appendTo( '#main-toolbar .buttons' );
+        
+        $todoPanel.on('click', '.btn-server-setup',function(){
+            settingsDialog.showDialog();
+        });
+        
+        $todoPanel.on('click', '.btn-upload-all',function(){
+            uploadAllItems();
+        });
+		
+        $todoPanel.on('click', '.btn-skip-all',function(){
+            skipAllItems();
+        });
+		
 		
 		// Enable extension if loaded last time.
 		if ( preferences.get( 'enabled' ) ) {
 			enablePanel( true );
 		}
+        
+        $(_nodeDomain).on('uploading', function(err, msg){
+            updateStatus('Uploading: '+msg);
+        });
+        $(_nodeDomain).on('uploaded', function(err, msg){
+            var projectUrl = ProjectManager.getProjectRoot().fullPath;
+            skipItem(projectUrl+msg);
+            updateStatus('Finished: '+msg);
+        });
+        $(_nodeDomain).on('error', function(err, msg){
+            updateStatus('Error: '+msg);
+        });
 	} );
 } );
