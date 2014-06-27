@@ -1,10 +1,9 @@
 brackets-sftp-upload
 ====================
 
-SFTP upload plugin for brackets
+SFTP/FTP upload plugin for brackets
 
-## features ##
-
+## Features ##
 
 * Keep track of changed files in your project
 * Upload panel - you have total control over which to upload and which to skip
@@ -13,4 +12,10 @@ SFTP upload plugin for brackets
 * Right click menu command in your project panel, upload any specific file or folder you want.  
 * Also a good sample code to learn how brackets works with node.
 
- 
+## Notes for developers ##
+
+This repo does not include required node modules! For extension develops, please run 
+
+npm install
+
+in the /node folder.

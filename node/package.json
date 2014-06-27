@@ -11,7 +11,9 @@
   ],
   "dependencies": {
     "scp2": "~0.1.4",
-    "walk": "~2.3.3"
+    "walk": "~2.3.3",
+    "jsftp": "~1.3.0",
+    "jsftp-mkdirp": "~0.1.2"
   },
   "repository": {
     "type": "git",

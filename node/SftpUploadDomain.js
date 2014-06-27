@@ -1,9 +1,12 @@
 (function(){
     
     var SftpClient = require('scp2'),
+        JSFtp = require("jsftp"),
         walk = require('walk'),
         fs = require('fs'),
         _domainManager;
+    
+    JSFtp = require('jsftp-mkdirp')(JSFtp); 
 
     function SftpJobs(sftpClient){
         this.config = {
@@ -33,6 +36,7 @@
         this.isRunning = false;
         this.jobQueue = [];
         this.sftpClient = null;
+        this.ftpClient = null;
         var self = this;
 
         self.run = function(){
@@ -47,6 +51,12 @@
                             self.sftpClient.close();
                         }
                         self.sftpClient = null;
+                    }
+                    else if(job.config.method == 'ftp'){
+                        if(self.ftpClient){
+//                            self.ftpClient.raw.quit();
+                        }
+                        self.ftpClient = null;
                     }
                 }
 
@@ -105,15 +115,76 @@
                             });
                         }
                     });   // fs.stat
+                }   // if method == sftp
+                else if(self.config.method == 'ftp'){
+                    if(self.ftpClient === null){
+                        self.ftpClient = new JSFtp({
+                            port: self.config.port,
+                            host: self.config.host,
+                            user: self.config.username,
+                            pass: self.config.password
+                        });
+                    }
+                    
+                    
+                    var remotePath = job.remotePath;
+                    fs.stat(job.localPath, function(err, stats){
+                        if(err){
+                            _domainManager.emitEvent("sftpUpload", "error", [err]);
+                            self.run();
+                        }
+                        if(stats.isFile()) {
+                            _domainManager.emitEvent("sftpUpload", "uploading", [remotePath]);
+                            var path_only = fullRemotePath.replace(/[^\/]*$/, '').replace(/\/$/, '');
+                            self.ftpClient.mkdirp(path_only, function(err){
+                                if(err){
+                                    _domainManager.emitEvent("sftpUpload", "error", [err.message]);
+                                    self.run();
+                                }
+                                else{
+                                    self.ftpClient.put(job.localPath, fullRemotePath, function(err){
+                                        if(err){
+                                            _domainManager.emitEvent("sftpUpload", "error", [err.message]);
+                                            self.run();
+                                        }
+                                        else{
+                                            _domainManager.emitEvent("sftpUpload", "uploaded", [remotePath]);
+                                            self.run();
+                                        }
+                                    });
+                                }
+                            });
+                            
+                        }
+                        else if(stats.isDirectory()){
+                            _domainManager.emitEvent("sftpUpload", "uploading", [remotePath]);
+                            self.ftpClient.raw.mkd(fullRemotePath, function(err){
+                                if(err){
+                                    _domainManager.emitEvent("sftpUpload", "error", [err.message]);
+                                    self.run();
+                                }
+                                else{
+                                    _domainManager.emitEvent("sftpUpload", "uploaded", [remotePath]);
+                                    self.run();
+                                }
+                            });
+                        }
+                    });   // fs.stat
                 }   // if method == ftp
-
-                //TODO: do ftp upload
 
             }   // if there is job
             else{
                 self.isRunning = false;
-                self.sftpClient.close();
-                self.sftpClient = null;
+                if(self.sftpClient){
+                    self.sftpClient.close();
+                    self.sftpClient = null;
+                }
+                if(self.ftpClient){
+//                    self.ftpClient.raw.quit(function(err){
+//                        console.log(err);
+//                    });
+                    self.ftpClient = null;
+                }
             }
         };
         

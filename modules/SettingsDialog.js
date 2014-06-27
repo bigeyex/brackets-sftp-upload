@@ -22,7 +22,15 @@ define( function( require, exports ) {
 	 * Initialize dialog values.
 	 */
 	function init() {
-
+        $('#sftpupload-settings-dialog .input-method').change(function(){
+            var value = $('#sftpupload-settings-dialog .input-method').val();
+            if(value == 'sftp'){
+                $('#sftpupload-settings-dialog .input-port').val('22');
+            }
+            else if(value == 'ftp'){
+                $('#sftpupload-settings-dialog .input-port').val('21');
+            }
+        });
 	}
 	
 	/**
