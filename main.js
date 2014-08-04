@@ -227,9 +227,14 @@ define( function( require, exports, module ) {
                 if(changedFiles === null){
                     changedFiles = {};
                 }
+                var projectUrl = ProjectManager.getProjectRoot().fullPath;
+                var serverInfo = dataStorage.get('server_info');
+                if(serverInfo.uploadOnSave){
+                    uploadItem(path, path.replace(projectUrl, ''));
+                    return;
+                }
                 if(!(path in changedFiles)){
                     changedFiles[path]=1;
-                    var projectUrl = ProjectManager.getProjectRoot().fullPath;
                     dataStorage.set('changed_files', changedFiles);
                     $('#sftp-upload-tbody').append(Mustache.render( todoRowTemplate, {
                             strings: Strings,
@@ -238,6 +243,16 @@ define( function( require, exports, module ) {
                                 file: path.replace(projectUrl, '')
                             }]
                     }));
+
+                    $('#sftp-upload-tbody .upload-button').off().on('click', function(e){
+                        uploadItem($(this).attr('x-file'), $(this).attr('r-file'));
+                        e.stopPropagation();
+                    });
+
+                    $('#sftp-upload-tbody .skip-button').off().on('click', function(e){
+                        skipItem($(this).attr('x-file'));
+                        e.stopPropagation();
+                    });
                 }
                 
 			} ); 

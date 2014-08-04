@@ -130,7 +130,7 @@
                     var remotePath = job.remotePath;
                     fs.stat(job.localPath, function(err, stats){
                         if(err){
-                            _domainManager.emitEvent("sftpUpload", "error", [err]);
+                            _domainManager.emitEvent("sftpUpload", "error", [err.message]);
                             self.run();
                         }
                         if(stats.isFile()) {
@@ -171,7 +171,7 @@
                         }
                     });   // fs.stat
                 }   // if method == ftp
-
+ 
             }   // if there is job
             else{
                 self.isRunning = false;

@@ -3,6 +3,14 @@ brackets-sftp-upload
 
 SFTP/FTP upload plugin for brackets
 
+## Release Notes ##
+version 1.2
+
+- bug fix:  when the "upload" button fails on newly changed files;
+- bug fix: setting dialog reverts to default value even when settings are changed
+- feature: added new "upload on save" function
+
+
 ## Features ##
 
 * Keep track of changed files in your project

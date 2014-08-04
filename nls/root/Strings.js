@@ -28,5 +28,6 @@ define( {
 	SETTINGS_DIALOG_PORT: 		  "Port",
 	SETTINGS_DIALOG_USERNAME: 	  "User Name",
 	SETTINGS_DIALOG_PASSWORD: 	  "Password",
-	SETTINGS_DIALOG_PATH: 		  "Path"
+	SETTINGS_DIALOG_PATH: 		  "Path",
+    SETTINGS_UPLOAD_ON_SAVE:      "Upload On Save"
 } );
