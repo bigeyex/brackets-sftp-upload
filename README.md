@@ -4,6 +4,11 @@ brackets-sftp-upload
 SFTP/FTP upload plugin for brackets
 
 ## Release Notes ##
+version 1.2.1
+- feature: support SSH RSA private key! Just type in the path of the private key into the password field.
+- bug fix: better error feedback.
+
+
 version 1.2
 
 - bug fix:  when the "upload" button fails on newly changed files;

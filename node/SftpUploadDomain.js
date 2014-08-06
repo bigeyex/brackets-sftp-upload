@@ -66,12 +66,23 @@
                 if(self.config.method == 'sftp'){
                     if(self.sftpClient === null){
                         self.sftpClient = new SftpClient.Client();
-                        self.sftpClient.defaults({
+                        var defaults = {
                             port: self.config.port,
                             host: self.config.host,
-                            username: self.config.username,
-                            password: self.config.password
-                        });
+                            username: self.config.username
+                        };
+                        var rsa_path = self.config.password;
+                        if(rsa_path.substring(0,1) == '~'){
+                            var home_path = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE ;
+                            rsa_path = home_path+rsa_path.substring(1);
+                        }
+                        if(fs.existsSync(rsa_path)){
+                            defaults.privateKey =  fs.readFileSync(rsa_path);
+                        }
+                        else{
+                            defaults.password = self.config.password;
+                        }
+                        self.sftpClient.defaults(defaults);
                         self.sftpClient.on('error', function(err){
                             var message = err.message;
                             if(message == 'connect ECONNREFUSED'){
@@ -85,14 +96,14 @@
                     var remotePath = job.remotePath;
                     fs.stat(job.localPath, function(err, stats){
                         if(err){
-                            _domainManager.emitEvent("sftpUpload", "error", [err]);
+                            _domainManager.emitEvent("sftpUpload", "error", [err.message]);
                             self.run();
                         }
                         if(stats.isFile()) {
                             _domainManager.emitEvent("sftpUpload", "uploading", [remotePath]);
                             self.sftpClient.upload(job.localPath, fullRemotePath, function(err){
                                 if(err){
-                                    _domainManager.emitEvent("sftpUpload", "error", [err]);
+                                    _domainManager.emitEvent("sftpUpload", "error", [err.message]);
                                     self.run();
                                 }
                                 else{
