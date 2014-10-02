@@ -29,5 +29,5 @@ define( {
 	SETTINGS_DIALOG_USERNAME: 	  "Benutzername",
 	SETTINGS_DIALOG_PASSWORD: 	  "Passwort",
 	SETTINGS_DIALOG_PATH: 		  "Pfad",
-    SETTINGS_UPLOAD_ON_SAVE:      "Hochladen beim speichern"
+    SETTINGS_UPLOAD_ON_SAVE:      "Hochladen beim Speichern"
 } );
