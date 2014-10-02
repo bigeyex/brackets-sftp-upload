@@ -5,6 +5,9 @@ SFTP/FTP upload plugin for brackets
 
 ## Release Notes ##
 
+version 1.2.3
+- translation: added German translation (Thanks danielkratz!)
+
 version 1.2.2
 - bug fix: now can upload file with white spaces in names.
 
