@@ -1,8 +1,8 @@
 /*!
- * Brackets Todo 0.5.3
- * Display all todo comments in current document or project.
+ * Brackets SFTP Upload
+ * Syncs files with remote server
  *
- * @author Mikael Jorhult
+ * @author Wang Yu <bigeyex@gmail.com>
  * @license http://mikaeljorhult.mit-license.org MIT
  */
 define( function( require, exports, module ) {
