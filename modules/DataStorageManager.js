@@ -2,11 +2,9 @@ define( function( require, exports, module ) {
 	'use strict';
 
 	// Get dependencies.
-	var FileSystem        = brackets.getModule("filesystem/FileSystem"),
-        ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-        FileUtils         = brackets.getModule("file/FileUtils");
-
-
+	var FileSystem      = brackets.getModule("filesystem/FileSystem"),
+        ProjectManager	= brackets.getModule( 'project/ProjectManager' ),
+        FileUtils       = brackets.getModule("file/FileUtils");
 
     var dataCache = {},
         projectUrl ='',
