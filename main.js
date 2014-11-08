@@ -9,19 +9,15 @@ define( function( require, exports, module ) {
 	'use strict';
 
 	// Get dependencies.
-	var Async = brackets.getModule( 'utils/Async' ),
-		Menus = brackets.getModule( 'command/Menus' ),
+	var Menus = brackets.getModule( 'command/Menus' ),
 		CommandManager = brackets.getModule( 'command/CommandManager' ),
 		Commands = brackets.getModule( 'command/Commands' ),
 		PreferencesManager = brackets.getModule( 'preferences/PreferencesManager' ),
 		ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-		EditorManager = brackets.getModule( 'editor/EditorManager' ),
 		DocumentManager = brackets.getModule( 'document/DocumentManager' ),
 		WorkspaceManager = brackets.getModule( 'view/WorkspaceManager' ),
 		Resizer = brackets.getModule( 'utils/Resizer' ),
 		AppInit = brackets.getModule( 'utils/AppInit' ),
-		FileUtils = brackets.getModule( 'file/FileUtils' ),
-		FileSystem = brackets.getModule( 'filesystem/FileSystem' ),
 		ExtensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
         NodeDomain = brackets.getModule("utils/NodeDomain"),
 
@@ -41,18 +37,16 @@ define( function( require, exports, module ) {
 		todoRowTemplate = require( 'text!html/row.html' ),
 
 		// Setup extension.
-        serverInfo, //sftp username/password etc;
 		$todoPanel,
-        projectUrl,
 		$todoIcon = $( '<a href="#" title="' + Strings.EXTENSION_NAME + '" id="brackets-sftp-upload-icon"></a>' ),
 
 		// Get view menu.
 		menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU ),
         contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
 
+
 	// Define preferences.
 	preferences.definePreference( 'enabled', 'boolean', false );
-
     // Get Node module domain
     var _domainPath = ExtensionUtils.getModulePath(module, "node/SftpUploadDomain");
     var _nodeDomain = new NodeDomain("sftpUpload", _domainPath);
@@ -120,7 +114,7 @@ define( function( require, exports, module ) {
 
 		// Save enabled state.
 		preferences.set( 'enabled', enabled );
-		preferences.save()
+		preferences.save();
 
 		// Mark menu item as enabled/disabled.
 		CommandManager.get( COMMAND_ID ).setChecked( enabled );
@@ -215,8 +209,7 @@ define( function( require, exports, module ) {
 	 * Listen for save or refresh and look for todos when needed.
 	 */
 	function registerListeners() {
-		var $documentManager = $( DocumentManager ),
-			$projectManager = $( ProjectManager );
+		var $documentManager = $( DocumentManager );
 
 		// Listeners bound to Brackets modules.
 		$documentManager
@@ -229,7 +222,7 @@ define( function( require, exports, module ) {
                 }
                 var projectUrl = ProjectManager.getProjectRoot().fullPath;
                 var serverInfo = dataStorage.get('server_info');
-                if(serverInfo != null && serverInfo.uploadOnSave){
+                if(serverInfo !== null && serverInfo.uploadOnSave){
                     uploadItem(path, path.replace(projectUrl, ''));
                     return;
                 }
