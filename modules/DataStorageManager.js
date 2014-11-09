@@ -1,6 +1,6 @@
 define( function( require, exports, module ) {
 	'use strict';
-	
+
 	// Get dependencies.
 	var extensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
         _                 = brackets.getModule("thirdparty/lodash"),
@@ -8,14 +8,14 @@ define( function( require, exports, module ) {
         ProjectManager = brackets.getModule( 'project/ProjectManager' ),
         FileUtils         = brackets.getModule("file/FileUtils");
 
-    
-    
+
+
     var dataCache = {},
         projectUrl ='',
         self = this,
         fileUri = module.uri.replace(/[^\/]*$/, '')+'../config.json';
-    
-    
+
+
     FileUtils.readAsText(FileSystem.getFileForPath(fileUri)).done(function(text){
         dataCache = JSON.parse(text);
     })
@@ -23,16 +23,16 @@ define( function( require, exports, module ) {
         dataCache = {};
         FileUtils.writeText(FileSystem.getFileForPath(fileUri), '{}');
     });
-    
+
     $(ProjectManager).on('projectOpen', function(){
         projectUrl = ProjectManager.getProjectRoot().fullPath;
     });
-    
+
     function init(callback){
-        
-        
+
+
     }
-    
+
     function get(key){
         if(!(projectUrl in dataCache)){
             dataCache[projectUrl] = {};
@@ -44,7 +44,7 @@ define( function( require, exports, module ) {
             return null;
         }
     }
-    
+
     function set(key, value){
         if(!(projectUrl in dataCache)){
             dataCache[projectUrl] = {};
@@ -52,12 +52,12 @@ define( function( require, exports, module ) {
         dataCache[projectUrl][key] = value;
         _save();
     }
-    
+
     function _save(){
         FileUtils.writeText(FileSystem.getFileForPath(fileUri), JSON.stringify(dataCache));
     }
-    
+
     exports.get = get;
     exports.set = set;
-    
+
 } );

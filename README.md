@@ -5,6 +5,10 @@ SFTP/FTP upload plugin for brackets
 
 ## Release Notes ##
 
+version 1.2.4 (Thanks mhentgesarrow!)
+- Conform to new API standards
+- bug fix: Display saved passwords now 
+
 version 1.2.3
 - translation: added German translation (Thanks danielkratz!)
 
