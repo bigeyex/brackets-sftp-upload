@@ -46,7 +46,8 @@ define( function( require, exports, module ) {
 
 
 	// Define preferences.
-	preferences.definePreference( 'enabled', 'boolean', false );
+	preferences.definePreference( 'showPanel', 'boolean', false );
+
     // Get Node module domain
     var _domainPath = ExtensionUtils.getModulePath(module, "node/SftpUploadDomain");
     var _nodeDomain = new NodeDomain("sftpUpload", _domainPath);
@@ -54,7 +55,6 @@ define( function( require, exports, module ) {
 	// Register extension.
     CommandManager.register( Strings.EXTENSION_NAME, COMMAND_ID, togglePanel );
 	CommandManager.register( Strings.UPLOAD_MENU_NAME, COMMAND_ID_UPLOAD, uploadMenuAction );
-
 
 	// Add command to menu.
 	if ( menu !== undefined ) {
@@ -73,21 +73,19 @@ define( function( require, exports, module ) {
 	/**
 	 * Set state of extension.
 	 */
-    // this is a menu item
 	function togglePanel() {
-		var enabled = preferences.get( 'enabled' );
-
-		enablePanel( !enabled );
+		var panelVisible = preferences.get( 'showPanel' );
+		enablePanel( !panelVisible );
 	}
 
     function uploadMenuAction(){
         var item = ProjectManager.getSelectedItem();
         var projectUrl = ProjectManager.getProjectRoot().fullPath;
         var remotePath = item.fullPath.replace(projectUrl, '');
-        if(item.isFile){
+        if (item.isFile) {
             uploadItem(item.fullPath, remotePath);
         }
-        else{
+        else {
             uploadDirectory(item.fullPath, remotePath);
         }
     }
@@ -112,9 +110,8 @@ define( function( require, exports, module ) {
 			$todoIcon.removeClass( 'active' );
 		}
 
-		// Save enabled state.
-		preferences.set( 'enabled', enabled );
-		preferences.save();
+		// Save visible panel state.
+		preferences.set( 'showPanel', enabled );
 
 		// Mark menu item as enabled/disabled.
 		CommandManager.get( COMMAND_ID ).setChecked( enabled );
@@ -158,11 +155,18 @@ define( function( require, exports, module ) {
     // upload ONE file to the server
     function uploadItem(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
+		console.log("uploading");
+
         _nodeDomain.exec('upload', localPath, remotePath, serverInfo).fail(function(err){
+			console.log("fail");
             updateStatus(err);
-        });
+        }).done(function() {
+			console.log("done");
+			updateStatus("did?"); //mmmmmmh
+		})
     }
 
+	// upload single directory to server
     function uploadDirectory(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
         _nodeDomain.exec('uploadDirectory', localPath, remotePath, serverInfo).fail(function(err){
@@ -290,7 +294,7 @@ define( function( require, exports, module ) {
 
 
 		// Enable extension if loaded last time.
-		if ( preferences.get( 'enabled' ) ) {
+		if ( preferences.get( 'showPanel' ) ) {
 			enablePanel( true );
 		}
 
