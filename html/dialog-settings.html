@@ -7,7 +7,7 @@
 		<div class="field-container server">
                 <label>
                     {{ Strings.SETTINGS_DIALOG_TYPE }}:
-                    
+
                 </label>
                 <select class="input-method" value="{{method}}">
                         <option value="ftp">{{ Strings.SETTINGS_DIALOG_TYPE_FTP }}</option>
@@ -22,37 +22,37 @@
             </div>
             <div class="field-container port">
                 <label>
-                    {{ Strings.SETTINGS_DIALOG_PORT }}: 
+                    {{ Strings.SETTINGS_DIALOG_PORT }}:
                 </label>
                 <input type="text" class="input-port" value="{{port}}"/>
             </div>
             <div class="field-container username">
                 <label>
-                    {{ Strings.SETTINGS_DIALOG_USERNAME }}: 
+                    {{ Strings.SETTINGS_DIALOG_USERNAME }}:
                 </label>
                 <input type="text" class="input-username" value="{{username}}"/>
             </div>
             <div class="field-container username">
                 <label>
-                    {{ Strings.SETTINGS_DIALOG_PASSWORD }}: 
+                    {{ Strings.SETTINGS_DIALOG_PASSWORD }}:
                 </label>
-                <input type="password" class="input-password"/> (Or path to RSA private key)
+                <input type="password" class="input-password" value="{{password}}"/> (Or path to RSA private key)
             </div>
             <div class="field-container username">
                 <label>
-                    {{ Strings.SETTINGS_DIALOG_PATH }}: 
+                    {{ Strings.SETTINGS_DIALOG_PATH }}:
                 </label>
                 <input type="text" class="input-path" value="{{path}}"/>
             </div>
             <div class="field-container username">
                 <label> </label>
                 <input type="checkbox" class="input-save" value="1"/>
-                {{ Strings.SETTINGS_UPLOAD_ON_SAVE }} 
-                
+                {{ Strings.SETTINGS_UPLOAD_ON_SAVE }}
+
             </div>
 	</div>
     {{/info}}
-	
+
 	<div class="modal-footer">
 		<button data-button-id="ok" class="dialog-button btn primary">{{ Strings.OK }}</button>
 		<button data-button-id="cancel" class="dialog-button btn">{{ Strings.CANCEL }}</button>
