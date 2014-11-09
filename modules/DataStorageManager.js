@@ -1,6 +1,6 @@
 define( function( require, exports, module ) {
 	'use strict';
-	
+
 	// Get dependencies.
 	var extensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
         _                 = brackets.getModule("thirdparty/lodash"),
@@ -8,31 +8,32 @@ define( function( require, exports, module ) {
         ProjectManager = brackets.getModule( 'project/ProjectManager' ),
         FileUtils         = brackets.getModule("file/FileUtils");
 
-    
-    
+
+
     var dataCache = {},
         projectUrl ='',
         self = this,
         fileUri = module.uri.replace(/[^\/]*$/, '')+'../config.json';
-    
-    
+
+
     FileUtils.readAsText(FileSystem.getFileForPath(fileUri)).done(function(text){
         dataCache = JSON.parse(text);
     })
     .fail(function (errorCode) {
+		console.log("fail at readAsText"); //MITCH
         dataCache = {};
         FileUtils.writeText(FileSystem.getFileForPath(fileUri), '{}');
     });
-    
+
     $(ProjectManager).on('projectOpen', function(){
         projectUrl = ProjectManager.getProjectRoot().fullPath;
     });
-    
+
     function init(callback){
-        
-        
+
+
     }
-    
+
     function get(key){
         if(!(projectUrl in dataCache)){
             dataCache[projectUrl] = {};
@@ -44,7 +45,7 @@ define( function( require, exports, module ) {
             return null;
         }
     }
-    
+
     function set(key, value){
         if(!(projectUrl in dataCache)){
             dataCache[projectUrl] = {};
@@ -52,12 +53,15 @@ define( function( require, exports, module ) {
         dataCache[projectUrl][key] = value;
         _save();
     }
-    
+
     function _save(){
-        FileUtils.writeText(FileSystem.getFileForPath(fileUri), JSON.stringify(dataCache));
+		//Can do blind write because createing file on-the-fly, therefore
+		//a useful hash will not be set up for the file - which causes
+		//a Brackets "Blind write attempted" error in the console
+        FileUtils.writeText(FileSystem.getFileForPath(fileUri), JSON.stringify(dataCache), true);
     }
-    
+
     exports.get = get;
     exports.set = set;
-    
+
 } );
