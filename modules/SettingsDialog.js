@@ -13,21 +13,19 @@ define( function( require, exports ) {
 		dialog;
 
 	/**
-	 * Set each value of the preferences in dialog.
-	 */
-	function setValues( values ) {
-	}
-
-	/**
 	 * Initialize dialog values.
 	 */
 	function init() {
+
+		//When "Type" value is changed, set "Port" accordingly
         $('#sftpupload-settings-dialog .input-method').change(function(){
             var value = $('#sftpupload-settings-dialog .input-method').val();
-            if(value === 'sftp'){
+
+            if(value === 'sftp') {
                 $('#sftpupload-settings-dialog .input-port').val('22');
             }
-            else if(value === 'ftp'){
+
+            else if(value === 'ftp') {
                 $('#sftpupload-settings-dialog .input-port').val('21');
             }
         });
@@ -51,13 +49,8 @@ define( function( require, exports ) {
 		// Save dialog to variable.
 		dialog = Dialogs.showModalDialogUsingTemplate( compiledTemplate );
 
-		// Initialize dialog values.
+		// Initialize dialog callback listeners
 		init();
-
-        if(serverInfo.uploadOnSave){
-            $('.input-save').prop('checked', true);
-        }
-        $('.input-method').val(serverInfo.method);
 
 		// Open dialog.
 		dialog.done( function( buttonId ) {

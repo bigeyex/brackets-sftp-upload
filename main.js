@@ -155,15 +155,10 @@ define( function( require, exports, module ) {
     // upload ONE file to the server
     function uploadItem(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
-		console.log("uploading");
 
         _nodeDomain.exec('upload', localPath, remotePath, serverInfo).fail(function(err){
-			console.log("fail");
             updateStatus(err);
-        }).done(function() {
-			console.log("done");
-			updateStatus("did?"); //mmmmmmh
-		})
+        })
     }
 
 	// upload single directory to server
