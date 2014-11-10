@@ -176,7 +176,7 @@
 }
 
 .sftp-upload-server-config-form input,.sftp-upload-server-config-form select {
-    margin-bottom: 0;   
+    margin-bottom: 0;
     display: inline-block;
 }
 
@@ -188,9 +188,3 @@
     text-align: right;
     padding-right: 5px;
 }
-
-.sftp-upload-server-config-form .future label{
-    width: 210px;
-    margin-top: 7px;
-}
-
