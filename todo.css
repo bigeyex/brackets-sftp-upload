@@ -1,5 +1,5 @@
 #brackets-sftp-upload .status-stab{
-    color: #555;
+	color: #555;
 }
 
 .brackets-sftp-upload table {
@@ -12,7 +12,7 @@
 }
 
 .brackets-sftp-upload td.filename{
-    padding-left: 20px;
+	padding-left: 20px;
 }
 
 .brackets-sftp-upload .done {
@@ -172,7 +172,7 @@
 }
 
 .sftp-upload-server-config-form .field-container {
-    margin-bottom: 7px;
+	margin-bottom: 7px;
 }
 
 .sftp-upload-server-config-form .field-container input {
@@ -180,17 +180,17 @@
 }
 
 .sftp-upload-server-config-form input,.sftp-upload-server-config-form select {
-    margin-bottom: 0;
-    display: inline-block;
+	margin-bottom: 0;
+	display: inline-block;
 	margin-left: 80px;
 }
 
 .sftp-upload-server-config-form label {
 	position: absolute;
 	margin-top: 5px;
-    margin-bottom: 0;
-    display: inline-block;
-    text-align: right;
+	margin-bottom: 0;
+	display: inline-block;
+	text-align: right;
 }
 
 .sftp-upload-server-config-form label.post-input {
