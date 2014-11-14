@@ -54,7 +54,7 @@ define( function( require, exports, module ) {
     }
 
     function _save(){
-        FileUtils.writeText(FileSystem.getFileForPath(fileUri), JSON.stringify(dataCache));
+        FileUtils.writeText(FileSystem.getFileForPath(fileUri), JSON.stringify(dataCache), true);
     }
 
     exports.get = get;
