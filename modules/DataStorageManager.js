@@ -3,12 +3,10 @@ define( function( require, exports, module ) {
 
 	// Get dependencies.
 	var extensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
-		_				 = brackets.getModule("thirdparty/lodash"),
+		_				= brackets.getModule("thirdparty/lodash"),
 		FileSystem		= brackets.getModule("filesystem/FileSystem"),
-		ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-		FileUtils		 = brackets.getModule("file/FileUtils");
-
-
+		ProjectManager	= brackets.getModule("project/ProjectManager"),
+		FileUtils		= brackets.getModule("file/FileUtils");
 
 	var dataCache = {},
 		projectUrl ='',
