@@ -1,27 +1,23 @@
 /*!
- * Brackets Todo 0.5.3
- * Display all todo comments in current document or project.
+ * Brackets SFTP Upload
+ * Syncs files with remote server
  *
- * @author Mikael Jorhult
+ * @author Wang Yu <bigeyex@gmail.com>
  * @license http://mikaeljorhult.mit-license.org MIT
  */
 define( function( require, exports, module ) {
 	'use strict';
 
 	// Get dependencies.
-	var Async = brackets.getModule( 'utils/Async' ),
-		Menus = brackets.getModule( 'command/Menus' ),
+	var Menus = brackets.getModule( 'command/Menus' ),
 		CommandManager = brackets.getModule( 'command/CommandManager' ),
 		Commands = brackets.getModule( 'command/Commands' ),
 		PreferencesManager = brackets.getModule( 'preferences/PreferencesManager' ),
 		ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-		EditorManager = brackets.getModule( 'editor/EditorManager' ),
 		DocumentManager = brackets.getModule( 'document/DocumentManager' ),
 		WorkspaceManager = brackets.getModule( 'view/WorkspaceManager' ),
 		Resizer = brackets.getModule( 'utils/Resizer' ),
 		AppInit = brackets.getModule( 'utils/AppInit' ),
-		FileUtils = brackets.getModule( 'file/FileUtils' ),
-		FileSystem = brackets.getModule( 'filesystem/FileSystem' ),
 		ExtensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
         NodeDomain = brackets.getModule("utils/NodeDomain"),
 
@@ -41,17 +37,16 @@ define( function( require, exports, module ) {
 		todoRowTemplate = require( 'text!html/row.html' ),
 
 		// Setup extension.
-        serverInfo, //sftp username/password etc;
 		$todoPanel,
-        projectUrl,
 		$todoIcon = $( '<a href="#" title="' + Strings.EXTENSION_NAME + '" id="brackets-sftp-upload-icon"></a>' ),
 
 		// Get view menu.
 		menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU ),
         contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
 
+
 	// Define preferences.
-	preferences.definePreference( 'enabled', 'boolean', false );
+	preferences.definePreference( 'showPanel', 'boolean', false );
 
     // Get Node module domain
     var _domainPath = ExtensionUtils.getModulePath(module, "node/SftpUploadDomain");
@@ -60,7 +55,6 @@ define( function( require, exports, module ) {
 	// Register extension.
     CommandManager.register( Strings.EXTENSION_NAME, COMMAND_ID, togglePanel );
 	CommandManager.register( Strings.UPLOAD_MENU_NAME, COMMAND_ID_UPLOAD, uploadMenuAction );
-
 
 	// Add command to menu.
 	if ( menu !== undefined ) {
@@ -79,21 +73,19 @@ define( function( require, exports, module ) {
 	/**
 	 * Set state of extension.
 	 */
-    // this is a menu item
 	function togglePanel() {
-		var enabled = preferences.get( 'enabled' );
-
-		enablePanel( !enabled );
+		var panelVisible = preferences.get( 'showPanel' );
+		enablePanel( !panelVisible );
 	}
 
     function uploadMenuAction(){
         var item = ProjectManager.getSelectedItem();
         var projectUrl = ProjectManager.getProjectRoot().fullPath;
         var remotePath = item.fullPath.replace(projectUrl, '');
-        if(item.isFile){
+        if (item.isFile) {
             uploadItem(item.fullPath, remotePath);
         }
-        else{
+        else {
             uploadDirectory(item.fullPath, remotePath);
         }
     }
@@ -118,9 +110,8 @@ define( function( require, exports, module ) {
 			$todoIcon.removeClass( 'active' );
 		}
 
-		// Save enabled state.
-		preferences.set( 'enabled', enabled );
-		preferences.save()
+		// Save visible panel state.
+		preferences.set( 'showPanel', enabled );
 
 		// Mark menu item as enabled/disabled.
 		CommandManager.get( COMMAND_ID ).setChecked( enabled );
@@ -164,11 +155,13 @@ define( function( require, exports, module ) {
     // upload ONE file to the server
     function uploadItem(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
+
         _nodeDomain.exec('upload', localPath, remotePath, serverInfo).fail(function(err){
             updateStatus(err);
-        });
+        })
     }
 
+	// upload single directory to server
     function uploadDirectory(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
         _nodeDomain.exec('uploadDirectory', localPath, remotePath, serverInfo).fail(function(err){
@@ -215,8 +208,7 @@ define( function( require, exports, module ) {
 	 * Listen for save or refresh and look for todos when needed.
 	 */
 	function registerListeners() {
-		var $documentManager = $( DocumentManager ),
-			$projectManager = $( ProjectManager );
+		var $documentManager = $( DocumentManager );
 
 		// Listeners bound to Brackets modules.
 		$documentManager
@@ -229,7 +221,7 @@ define( function( require, exports, module ) {
                 }
                 var projectUrl = ProjectManager.getProjectRoot().fullPath;
                 var serverInfo = dataStorage.get('server_info');
-                if(serverInfo != null && serverInfo.uploadOnSave){
+                if(serverInfo !== null && serverInfo.uploadOnSave){
                     uploadItem(path, path.replace(projectUrl, ''));
                     return;
                 }
@@ -297,7 +289,7 @@ define( function( require, exports, module ) {
 
 
 		// Enable extension if loaded last time.
-		if ( preferences.get( 'enabled' ) ) {
+		if ( preferences.get( 'showPanel' ) ) {
 			enablePanel( true );
 		}
 

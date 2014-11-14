@@ -2,17 +2,12 @@ define( function( require, exports, module ) {
 	'use strict';
 
 	// Get dependencies.
-	var extensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
-        _                 = brackets.getModule("thirdparty/lodash"),
-        FileSystem        = brackets.getModule("filesystem/FileSystem"),
-        ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-        FileUtils         = brackets.getModule("file/FileUtils");
-
-
+	var FileSystem      = brackets.getModule("filesystem/FileSystem"),
+        ProjectManager	= brackets.getModule( 'project/ProjectManager' ),
+        FileUtils       = brackets.getModule("file/FileUtils");
 
     var dataCache = {},
         projectUrl ='',
-        self = this,
         fileUri = module.uri.replace(/[^\/]*$/, '')+'../config.json';
 
 
@@ -27,12 +22,7 @@ define( function( require, exports, module ) {
     $(ProjectManager).on('projectOpen', function(){
         projectUrl = ProjectManager.getProjectRoot().fullPath;
     });
-
-    function init(callback){
-
-
-    }
-
+	
     function get(key){
         if(!(projectUrl in dataCache)){
             dataCache[projectUrl] = {};

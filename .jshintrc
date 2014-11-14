@@ -1,0 +1,14 @@
+{
+    "curly": true,
+    "eqeqeq": true,
+    "undef": true,
+    "unused": true,
+    "browser": true,
+    "node": true,
+	"predef": [
+		"define",
+		"brackets",
+		"$",
+		"Mustache"
+	]
+}

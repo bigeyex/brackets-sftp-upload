@@ -1,12 +1,12 @@
 (function(){
-    
+
     var SftpClient = require('scp2'),
         JSFtp = require("jsftp"),
         walk = require('walk'),
         fs = require('fs'),
         _domainManager;
-    
-    JSFtp = require('jsftp-mkdirp')(JSFtp); 
+
+    JSFtp = require('jsftp-mkdirp')(JSFtp);
 
     function SftpJobs(sftpClient){
         this.config = {
@@ -25,12 +25,12 @@
                 this.method = target.method;
             },
             equals: function(target){
-                return (this.host == target.host && 
-                   this.username == target.username &&
-                   this.password == target.password &&
-                   this.port == target.port &&
-                   this.path == target.path &&
-                   this.method == target.method);
+                return (this.host === target.host &&
+                   this.username === target.username &&
+                   this.password === target.password &&
+                   this.port === target.port &&
+                   this.path === target.path &&
+                   this.method === target.method);
             }
         };
         this.isRunning = false;
@@ -46,13 +46,13 @@
                 // if the config has changed, restart engine
                 if(job.config!==null && !(self.config.equals(job.config))){
                     self.config.load(job.config);
-                    if(job.config.method == 'sftp'){
+                    if(job.config.method === 'sftp'){
                         if(self.sftpClient){
                             self.sftpClient.close();
                         }
                         self.sftpClient = null;
                     }
-                    else if(job.config.method == 'ftp'){
+                    else if(job.config.method === 'ftp'){
                         if(self.ftpClient){
 //                            self.ftpClient.raw.quit();
                         }
@@ -62,8 +62,8 @@
 
                 // do sftp upload
                 var fullRemotePath = self._getFullRemotePath(job.remotePath);
-                
-                if(self.config.method == 'sftp'){
+
+                if(self.config.method === 'sftp'){
                     if(self.sftpClient === null){
                         self.sftpClient = new SftpClient.Client();
                         var defaults = {
@@ -72,7 +72,7 @@
                             username: self.config.username
                         };
                         var rsa_path = self.config.password;
-                        if(rsa_path.substring(0,1) == '~'){
+                        if(rsa_path.substring(0,1) === '~'){
                             var home_path = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE ;
                             rsa_path = home_path+rsa_path.substring(1);
                         }
@@ -85,14 +85,14 @@
                         self.sftpClient.defaults(defaults);
                         self.sftpClient.on('error', function(err){
                             var message = err.message;
-                            if(message == 'connect ECONNREFUSED'){
+                            if(message === 'connect ECONNREFUSED'){
                                 message = 'Wrong Username or Password';
                             }
                             _domainManager.emitEvent("sftpUpload", "error", [message]);
                         });
                     }
-                    
-                    
+
+
                     var remotePath = job.remotePath;
                     fs.stat(job.localPath, function(err, stats){
                         if(err){
@@ -126,8 +126,8 @@
                             });
                         }
                     });   // fs.stat
-                }   // if method == sftp
-                else if(self.config.method == 'ftp'){
+                }   // if method === sftp
+                else if(self.config.method === 'ftp'){
                     if(self.ftpClient === null){
                         self.ftpClient = new JSFtp({
                             port: self.config.port,
@@ -136,8 +136,8 @@
                             pass: self.config.password
                         });
                     }
-                    
-                    
+
+
                     var remotePath = job.remotePath;
                     fs.stat(job.localPath, function(err, stats){
                         if(err){
@@ -165,7 +165,7 @@
                                     });
                                 }
                             });
-                            
+
                         }
                         else if(stats.isDirectory()){
                             _domainManager.emitEvent("sftpUpload", "uploading", [remotePath]);
@@ -181,8 +181,8 @@
                             });
                         }
                     });   // fs.stat
-                }   // if method == ftp
- 
+                }   // if method === ftp
+
             }   // if there is job
             else{
                 self.isRunning = false;
@@ -198,21 +198,21 @@
                 }
             }
         };
-        
+
         self.add = function(localPath, remotePath, config){
             self.jobQueue.push({localPath: localPath, remotePath: remotePath, config: config});
             if(!self.isRunning){
                 self.run();
             }
         };
-        
+
         self.addDirectory = function(localPath, remotePath, config){
             var walker = walk.walk(localPath, {followLinks:false, filters:[".DS_Store"]});
             walker.on("file", function(root, stats, next){
                 self.add(root+stats.name, remotePath+stats.name, config);
                 next();
             });
-            
+
             walker.on("directories", function(root, stats, next){
                 var relativeRemotePath = remotePath+root.replace(localPath, '');
                 console.log(relativeRemotePath);
@@ -220,7 +220,7 @@
                 next();
             });
         };
-        
+
         self._getFullRemotePath = function(remotePath){
             var fullRemotePath;
             if(/\/$/.test(self.config.path)){   // if the user forget to add '/' in the path config, help with it.
@@ -232,9 +232,9 @@
             return fullRemotePath;
         }
     }
-    
+
     var sftpJobs = new SftpJobs();
-    
+
     function cmdUpload(localPath, remotePath, config){
         if(config === undefined) {config=null;}
         sftpJobs.add(localPath, remotePath, config);
@@ -246,7 +246,7 @@
             sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config);
         }
     }
-    
+
     function cmdUploadDirectory(localPath, remotePath, config){
         if(config === undefined) {config=null;}
         sftpJobs.addDirectory(localPath, remotePath, config);
@@ -254,11 +254,11 @@
 
     function init(domainManager) {
         _domainManager = domainManager;
-        
+
         if (!domainManager.hasDomain("sftpUpload")) {
             domainManager.registerDomain("sftpUpload", {major: 0, minor: 1});
         }
-        
+
         domainManager.registerCommand(
             "sftpUpload",       // domain name
             "upload",    // command name
@@ -276,7 +276,7 @@
                 description: "(optional) server configuration."}],
             []
         );
-        
+
         domainManager.registerCommand(
             "sftpUpload",       // domain name
             "uploadAll",    // command name
@@ -291,7 +291,7 @@
                 description: "(optional) server configuration."}],
             []
         );
-        
+
         domainManager.registerCommand(
             "sftpUpload",       // domain name
             "uploadDirectory",    // command name
@@ -309,8 +309,8 @@
                 description: "(optional) server configuration."}],
             []
         );
-        
-        
+
+
         domainManager.registerEvent(
             "sftpUpload",
             "uploading",
@@ -320,7 +320,7 @@
                 description: "the absolute local path of the file being uploaded"
             }]
         );
-        
+
         domainManager.registerEvent(
             "sftpUpload",
             "uploaded",
@@ -330,7 +330,7 @@
                 description: "the absolute local path of the file that is uploaded"
             }]
         );
-        
+
         domainManager.registerEvent(
             "sftpUpload",
             "error",
@@ -341,7 +341,7 @@
             }]
         );
     }
-    
+
     exports.init = init;
-    
+
 }());
