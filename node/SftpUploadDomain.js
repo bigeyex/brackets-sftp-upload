@@ -186,6 +186,7 @@
             }   // if there is job
             else{
                 self.isRunning = false;
+                _domainManager.emitEvent("sftpUpload", "jobCompleted");
                 if(self.sftpClient){
                     self.sftpClient.close();
                     self.sftpClient = null;
@@ -329,6 +330,12 @@
                 type: "string",
                 description: "the absolute local path of the file that is uploaded"
             }]
+        );
+        
+        domainManager.registerEvent(
+            "sftpUpload",
+            "jobCompleted",
+            []
         );
         
         domainManager.registerEvent(

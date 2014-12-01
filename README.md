@@ -5,6 +5,13 @@ SFTP/FTP upload plugin for brackets
 
 ## Release Notes ##
 
+version 1.3
+- now saves server info in local user preferences.
+- added an indicator icon in the right hand side.
+- Ctrl-Alt-U uploads the current file now. Open the panel via Ctrl-Alt-Shift-U.
+- click "Upload on Save" button now triggers the checkbox.
+- for developers: now uses 4-spaces instead of tabs across all the file.
+
 version 1.2.4 (Thanks mhentgesarrow!)
 - Conform to new API standards
 - bug fix: Display saved passwords now 

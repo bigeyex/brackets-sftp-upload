@@ -65,7 +65,8 @@ define( function( require, exports, module ) {
     // Add command to menu.
     if ( menu !== undefined ) {
         menu.addMenuDivider();
-        menu.addMenuItem( COMMAND_ID, 'Ctrl-Alt-U' );
+        menu.addMenuItem( COMMAND_ID, 'Ctrl-Alt-Shift-U' );
+        menu.addMenuItem( COMMAND_ID_UPLOAD, 'Ctrl-Alt-U' );
     }
 
     if ( contextMenu !== undefined ) {
@@ -160,18 +161,31 @@ define( function( require, exports, module ) {
 
         if ( callback ) { callback(); }
     }
+    
+    function showUploadingIconStatus(status){
+        if(status){
+            $todoIcon.addClass( 'uploading' );
+        }
+        else{
+            $todoIcon.removeClass( 'uploading' );
+        }
+    }
 
     // upload ONE file to the server
     function uploadItem(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
+        showUploadingIconStatus(true);
         _nodeDomain.exec('upload', localPath, remotePath, serverInfo).fail(function(err){
+            showUploadingIconStatus(false);
             updateStatus(err);
         });
     }
 
     function uploadDirectory(localPath, remotePath){
         var serverInfo = dataStorage.get('server_info');
+        showUploadingIconStatus(true);
         _nodeDomain.exec('uploadDirectory', localPath, remotePath, serverInfo).fail(function(err){
+            showUploadingIconStatus(false);
             updateStatus(err);
         });
     }
@@ -188,13 +202,15 @@ define( function( require, exports, module ) {
             };
             filelist.push(arg);
         }
+        showUploadingIconStatus(true);
         _nodeDomain.exec('uploadAll', filelist, serverInfo).fail(function(err){
+            showUploadingIconStatus(false);
             updateStatus(err);
         });
     }
 
     function skipItem(path) {
-        var changedFiles = dataStorage.get('changed_files');
+        var changedFiles = dataStorage.get('changed_files') || {};
         $('#brackets-sftp-upload tr[x-file="'+path+'"]').remove();
         if(path in changedFiles){
             delete changedFiles[path];
@@ -223,7 +239,7 @@ define( function( require, exports, module ) {
             .on( 'documentSaved.todo', function( event, document ) {
                 //TODO: add current document to change list
                 var path = document.file.fullPath;
-                var changedFiles = dataStorage.get('changed_files');
+                var changedFiles = dataStorage.get('changed_files') || {};
                 if(changedFiles === null){
                     changedFiles = {};
                 }
@@ -311,6 +327,9 @@ define( function( require, exports, module ) {
         });
         $(_nodeDomain).on('error', function(err, msg){
             updateStatus('Error: '+msg);
+        });
+        $(_nodeDomain).on('jobCompleted', function(err, msg){
+            showUploadingIconStatus(false);
         });
     } );
 } );

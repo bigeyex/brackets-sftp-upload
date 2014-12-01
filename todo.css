@@ -83,7 +83,11 @@
 }
 
 #brackets-sftp-upload-icon.active {
-	background-position: 0 -24px;
+	background-position-y: -24px;
+}
+
+#brackets-sftp-upload-icon.uploading {
+    background-position-x: -24px;
 }
 
 /*--- TOOLBAR ---*/
