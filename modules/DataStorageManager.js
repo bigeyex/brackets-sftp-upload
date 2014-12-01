@@ -1,28 +1,20 @@
 define( function( require, exports, module ) {
-	'use strict';
+    'use strict';
 
-	// Get dependencies.
-	var extensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
+    // Get dependencies.
+    var extensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
         _                 = brackets.getModule("thirdparty/lodash"),
         FileSystem        = brackets.getModule("filesystem/FileSystem"),
         ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-        FileUtils         = brackets.getModule("file/FileUtils");
+        FileUtils         = brackets.getModule("file/FileUtils"),
+        PreferencesManager = brackets.getModule( 'preferences/PreferencesManager' ),
+        preferences = PreferencesManager.getExtensionPrefs( 'bigeyex.bracketsSFTPUpload' );
 
 
 
-    var dataCache = {},
-        projectUrl ='',
-        self = this,
-        fileUri = module.uri.replace(/[^\/]*$/, '')+'../config.json';
-
-
-    FileUtils.readAsText(FileSystem.getFileForPath(fileUri)).done(function(text){
-        dataCache = JSON.parse(text);
-    })
-    .fail(function (errorCode) {
-        dataCache = {};
-        FileUtils.writeText(FileSystem.getFileForPath(fileUri), '{}');
-    });
+    var self = this,
+        propertyList = {},
+        projectUrl = '';
 
     $(ProjectManager).on('projectOpen', function(){
         projectUrl = ProjectManager.getProjectRoot().fullPath;
@@ -30,31 +22,21 @@ define( function( require, exports, module ) {
 
     function init(callback){
 
-
     }
 
     function get(key){
-        if(!(projectUrl in dataCache)){
-            dataCache[projectUrl] = {};
-        }
-        if(key in dataCache[projectUrl]){
-            return dataCache[projectUrl][key];
-        }
-        else{
-            return null;
-        }
+        return preferences.get(projectUrl+'|'+key);
     }
 
     function set(key, value){
-        if(!(projectUrl in dataCache)){
-            dataCache[projectUrl] = {};
+        if(!(projectUrl+'|'+key in propertyList)){
+            preferences.definePreference(projectUrl+'|'+key, 'string', '');
+            propertyList[projectUrl+'|'+key] = true;
         }
-        dataCache[projectUrl][key] = value;
-        _save();
+        preferences.set(projectUrl+'|'+key, value);
     }
 
     function _save(){
-        FileUtils.writeText(FileSystem.getFileForPath(fileUri), JSON.stringify(dataCache), true);
     }
 
     exports.get = get;
