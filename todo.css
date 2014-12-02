@@ -179,22 +179,18 @@
     margin-bottom: 7px;
 }
 
-.sftp-upload-server-config-form input,.sftp-upload-server-config-form select {
+.sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
+    margin-left: 75px;
     margin-bottom: 0;
     display: inline-block;
 }
 
-
 .sftp-upload-server-config-form label {
     position: absolute;
-    margin-bottom: 5px;
+    margin-top: 5px;
     display: inline-block;
     width: 70px;
     text-align: right;
-}
-
-.sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
-    margin-left: 75px;
 }
 
 .sftp-upload-server-config-form .future label{
