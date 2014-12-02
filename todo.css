@@ -175,22 +175,26 @@
 	display: none;
 }
 
-.sftp-upload-server-config-form .field-container{
+.sftp-upload-server-config-form .field-container {
     margin-bottom: 7px;
 }
 
 .sftp-upload-server-config-form input,.sftp-upload-server-config-form select {
-    margin-bottom: 0;   
+    margin-bottom: 0;
     display: inline-block;
 }
 
 
-.sftp-upload-server-config-form label{
+.sftp-upload-server-config-form label {
+    position: absolute;
     margin-bottom: 5px;
     display: inline-block;
     width: 70px;
     text-align: right;
-    padding-right: 5px;
+}
+
+.sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
+    margin-left: 75px;
 }
 
 .sftp-upload-server-config-form .future label{
