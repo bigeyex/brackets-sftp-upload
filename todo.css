@@ -193,7 +193,12 @@
     text-align: right;
 }
 
-.sftp-upload-server-config-form .future label{
+/* Checkbox has less height than standard text box */
+.sftp-upload-server-config-form .upload-on-save label {
+    margin-top: 0px;
+}
+
+.sftp-upload-server-config-form .future label {
     width: 210px;
     margin-top: 7px;
 }
