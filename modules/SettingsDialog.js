@@ -10,7 +10,10 @@ define( function( require, exports ) {
         settingsDialogTemplate = require( 'text!../html/dialog-settings.html' ),
         
         // Variables.
-        dialog;
+        dialog,
+        HasPortChanged,
+        defaultSFTPport = 22,
+        defaultFTPport  = 21;
     
     /**
      * Set each value of the preferences in dialog.
@@ -23,16 +26,16 @@ define( function( require, exports ) {
      */
     function init() {
         $('#sftpupload-settings-dialog .input-method').change(function(){
-            var value = $('#sftpupload-settings-dialog .input-method').val();
-            if(value == 'sftp'){
-                $('#sftpupload-settings-dialog .input-port').val('22');
+            var protcolType = $('#sftpupload-settings-dialog .input-method').val();
+            var port = $('#sftpupload-settings-dialog .input-port');
+            if(protcolType == 'sftp' && port.val() == defaultFTPport && !HasPortChanged){
+                port.val(defaultSFTPport);
             }
-            else if(value == 'ftp'){
-                $('#sftpupload-settings-dialog .input-port').val('21');
+            else if(protcolType == 'ftp' && port.val() == defaultSFTPport && !HasPortChanged){
+                port.val(defaultFTPport);
             }
         });
     }
-    
     /**
      * Exposed method to show dialog.
      */
@@ -40,7 +43,7 @@ define( function( require, exports ) {
         // Compile dialog template.
         var serverInfo = dataStorage.get('server_info');
         if(!serverInfo){
-            serverInfo = {method:'sftp', host:'', port:'22', username:'', password:'', uploadOnSave:0};
+            serverInfo = {method:'sftp', host:'', port:defaultSFTPport, username:'', password:'', uploadOnSave:0};
         }
         
         var compiledTemplate = Mustache.render( settingsDialogTemplate, {
@@ -53,6 +56,12 @@ define( function( require, exports ) {
         
         // Initialize dialog values.
         init();
+        
+        HasPortChanged = false;
+        
+        $('#sftpupload-settings-dialog .input-port').change(function(){
+            HasPortChanged = true;
+        });
         
         if(serverInfo.uploadOnSave){
             $('.input-save').prop('checked', true);
