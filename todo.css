@@ -180,7 +180,7 @@
 }
 
 .sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
-    margin-left: 75px;
+    margin-left: 105px;
     margin-bottom: 0;
     display: inline-block;
 }
@@ -189,7 +189,7 @@
     position: absolute;
     margin-top: 5px;
     display: inline-block;
-    width: 70px;
+    width: 100px;
     text-align: right;
 }
 
