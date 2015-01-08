@@ -28,6 +28,7 @@ define( function( require, exports, module ) {
         // Extension basics.
         COMMAND_ID = 'bigeyex.bracketsSFTPUpload.enable',
         COMMAND_ID_UPLOAD = 'bigeyex.bracketsSFTPUpload.upload',
+        COMMAND_ID_UPLOAD_ALL = 'bigeyex.bracketsSFTPUpload.uploadAll',
 
         Strings = require( 'modules/Strings' ),
         dataStorage = require( 'modules/DataStorageManager' ),
@@ -60,6 +61,7 @@ define( function( require, exports, module ) {
     // Register extension.
     CommandManager.register( Strings.EXTENSION_NAME, COMMAND_ID, togglePanel );
     CommandManager.register( Strings.UPLOAD_MENU_NAME, COMMAND_ID_UPLOAD, uploadMenuAction );
+    CommandManager.register( Strings.UPLOAD_ALL, COMMAND_ID_UPLOAD_ALL, uploadAllItems );
 
 
     // Add command to menu.
@@ -67,6 +69,7 @@ define( function( require, exports, module ) {
         menu.addMenuDivider();
         menu.addMenuItem( COMMAND_ID, 'Ctrl-Alt-Shift-U' );
         menu.addMenuItem( COMMAND_ID_UPLOAD, 'Ctrl-Alt-U' );
+        menu.addMenuItem( COMMAND_ID_UPLOAD_ALL, 'Ctrl-Shift-U' );
     }
 
     if ( contextMenu !== undefined ) {

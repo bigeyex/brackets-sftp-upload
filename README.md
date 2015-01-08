@@ -3,7 +3,34 @@ brackets-sftp-upload
 
 SFTP/FTP upload plugin for brackets
 
+## Features ##
+
+* Keep track of changed files in your project
+* Upload panel - you have total control over which to upload and which to skip
+* Server settings for each project
+* Store server settings in the extension folder, not the root folder of your projects, so no worry about uploading your credentials to your git repo.
+* Right click menu command in your project panel, upload any specific file or folder you want.  
+* Also a good sample code to learn how brackets works with node.
+
+## Getting Started ##
+
+1. Open Extension Manager by clicking the building-blocky icon on the right side of Brackets;
+2. Search for sftpupload;
+3. Click Install;
+4. Click the up-side arrow icon (on the right) to open the panel;
+5. Navigate to your project, click "Server Setup" button and fill in your server info;
+6. Now you can right-click on the files in your project, use Upload via SFTP to upload it to your server;
+7. If you change and save a file within the project, it will show up in the bottom panel; you can click "Upload" to upload this file, "Skip" to skip a single file, or "Upload All" to upload all changed files to the server.
+8. Shortcuts: 
+    * (Ctrl-Alt-U / Cmd-Alt-U) to upload the current opening file;
+    * (Ctrl-Shift-U / Cmd-Shift-U) to upload all changed files;
+    * (Ctrl-Alt-Shift-U / Cmd-Alt-Shift-U) to open up Upload panel.
+
 ## Release Notes ##
+
+version 1.3.1
+- @dedo1911 added Italian translation.
+- new shortcut for "Upload All": Ctrl-Shift-U.
 
 version 1.3
 - now saves server info in local user preferences.
@@ -32,20 +59,17 @@ version 1.2
 - bug fix: setting dialog reverts to default value even when settings are changed
 - feature: added new "upload on save" function
 
-
-## Features ##
-
-* Keep track of changed files in your project
-* Upload panel - you have total control over which to upload and which to skip
-* Server settings for each project
-* Store server settings in the extension folder, not the root folder of your projects, so no worry about uploading your credentials to your git repo.
-* Right click menu command in your project panel, upload any specific file or folder you want.  
-* Also a good sample code to learn how brackets works with node.
-
 ## Notes for developers ##
 
-This repo does not include required node modules! For extension develops, please run 
+This repo does not include required node modules! For extension developers, please run 
 
 npm install
 
 in the /node folder.
+
+## Contributors ##
+
+@bigeyex
+@danielkratz
+@mhentgesarrow
+@dedo1911
