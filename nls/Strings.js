@@ -6,6 +6,6 @@ define( function ( require, exports, module ) {
 		de: true,
 		sv: true,
 		zh: true,
-        it: true
+		it: true
 	};
 } );
