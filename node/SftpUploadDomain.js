@@ -12,24 +12,27 @@
         this.config = {
             host: '',
             username: '',
+            rsaPath: '',
             password: '',
             port: '',
-            path: '',
+            serverPath: '',
             method: 'sftp',
             load: function(target){
                 this.host = target.host;
                 this.username = target.username;
+                this.rsaPath = target.rsaPath;
                 this.password = target.password;
                 this.port = target.port;
-                this.path = target.path;
+                this.serverPath = target.serverPath;
                 this.method = target.method;
             },
             equals: function(target){
                 return (this.host == target.host && 
                    this.username == target.username &&
+                   this.rsaPath == target.rsaPath &&
                    this.password == target.password &&
                    this.port == target.port &&
-                   this.path == target.path &&
+                   this.serverPath == target.serverPath &&
                    this.method == target.method);
             }
         };
@@ -71,15 +74,15 @@
                             host: self.config.host,
                             username: self.config.username
                         };
-                        var rsa_path = self.config.password;
+                        var rsa_path = self.config.rsaPath;
                         if(rsa_path.substring(0,1) == '~'){
                             var home_path = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE ;
                             rsa_path = home_path+rsa_path.substring(1);
                         }
                         if(fs.existsSync(rsa_path)){
                             defaults.privateKey =  fs.readFileSync(rsa_path);
-                        }
-                        else{
+                            defaults.passphrase = self.config.password
+                        } else {
                             defaults.password = self.config.password;
                         }
                         self.sftpClient.defaults(defaults);
@@ -224,11 +227,11 @@
         
         self._getFullRemotePath = function(remotePath){
             var fullRemotePath;
-            if(/\/$/.test(self.config.path)){   // if the user forget to add '/' in the path config, help with it.
-                fullRemotePath = self.config.path+remotePath;
+            if(/\/$/.test(self.config.serverPath)){   // if the user forget to add '/' in the path config, help with it.
+                fullRemotePath = self.config.serverPath+remotePath;
             }
             else{
-                fullRemotePath = self.config.path+'/'+remotePath;
+                fullRemotePath = self.config.serverPath+'/'+remotePath;
             }
             return fullRemotePath;
         }
@@ -273,7 +276,7 @@
                 type: "string",
                 description: "(relative) path or filename of the destination"},
              {name: "config", // parameters
-                type: "{host: string, username: string, password: string, port: string, path: string, method: string}",
+                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string}",
                 description: "(optional) server configuration."}],
             []
         );
@@ -288,7 +291,7 @@
                 type: "[{localPath:string, remotePath:string},...]",
                 description: "a list of files to be uploaded"},
              {name: "config", // parameters
-                type: "{host: string, username: string, password: string, port: string, path: string, method: string}",
+                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string}",
                 description: "(optional) server configuration."}],
             []
         );
@@ -306,7 +309,7 @@
                 type: "string",
                 description: "(relative) path or filename of the destination"},
              {name: "config", // parameters
-                type: "{host: string, username: string, password: string, port: string, path: string, method: string}",
+                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string}",
                 description: "(optional) server configuration."}],
             []
         );

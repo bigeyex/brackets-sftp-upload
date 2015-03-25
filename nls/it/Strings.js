@@ -28,7 +28,7 @@ define( {
 	SETTINGS_DIALOG_PORT: 		  "Porta",
 	SETTINGS_DIALOG_USERNAME: 	  "Nome Utente",
 	SETTINGS_DIALOG_PASSWORD: 	  "Password",
-    SETTINGS_DIALOG_RSAMSG:       "(Oppure percorso alla chiave RSA privata)",
-	SETTINGS_DIALOG_PATH: 		  "Percorso",
+    SETTINGS_DIALOG_RSAMSG:       "RSA Key Path",
+	SETTINGS_DIALOG_PATH: 		  "Percorso server",
     SETTINGS_UPLOAD_ON_SAVE:      "Carica al salvataggio"
 } );

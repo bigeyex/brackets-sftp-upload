@@ -27,7 +27,8 @@ define( {
 	SETTINGS_DIALOG_HOST: 		  "Host",
 	SETTINGS_DIALOG_PORT: 		  "Port",
 	SETTINGS_DIALOG_USERNAME: 	  "Benutzername",
+    SETTINGS_DIALOG_RSAMSG:       "RSA Key Path",
 	SETTINGS_DIALOG_PASSWORD: 	  "Passwort",
-	SETTINGS_DIALOG_PATH: 		  "Pfad",
+	SETTINGS_DIALOG_PATH: 		  "Serverpfad",
     SETTINGS_UPLOAD_ON_SAVE:      "Hochladen beim Speichern"
 } );
