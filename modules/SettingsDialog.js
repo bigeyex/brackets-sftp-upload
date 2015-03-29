@@ -43,7 +43,7 @@ define( function( require, exports ) {
         // Compile dialog template.
         var serverInfo = dataStorage.get('server_info');
         if(!serverInfo){
-            serverInfo = {method:'sftp', host:'', port:defaultSFTPport, username:'', rsaPath:'', password:'', serverPath:'', uploadOnSave:0};
+            serverInfo = {method:'sftp', host:'', port:defaultSFTPport, username:'', password:'', uploadOnSave:0};
         }
         
         var compiledTemplate = Mustache.render( settingsDialogTemplate, {
@@ -78,9 +78,8 @@ define( function( require, exports ) {
                     host: $('.input-host', $dialog).val(),
                     port: $('.input-port', $dialog).val(),
                     username: $('.input-username', $dialog).val(),
-                    rsaPath: $('.input-rsa-path', $dialog).val(),
                     password: $('.input-password', $dialog).val(),
-                    serverPath: $('.input-server-path', $dialog).val(),
+                    path: $('.input-path', $dialog).val(),
                     uploadOnSave: $('.input-save', $dialog).is(':checked')
                 }
                 dataStorage.set('server_info', serverInfo);

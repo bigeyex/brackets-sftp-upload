@@ -27,7 +27,6 @@ define( {
 	SETTINGS_DIALOG_HOST: 		  "服务器地址",
 	SETTINGS_DIALOG_PORT: 		  "端口",
 	SETTINGS_DIALOG_USERNAME: 	  "用户名",
-	SETTINGS_DIALOG_RSAMSG: 		  "RSA密钥路径",
 	SETTINGS_DIALOG_PASSWORD: 	  "密码",
-	SETTINGS_DIALOG_PATH: 		  "服务器路径"
+	SETTINGS_DIALOG_PATH: 		  "服务器目录"
 } );
