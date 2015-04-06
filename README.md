@@ -28,8 +28,11 @@ SFTP/FTP upload plugin for brackets
 
 ## Release Notes ##
 
+version 1.3.3
+- feature: allows password protected RSA encryption keys (@swengmatt).
+
 version 1.3.2
-- When type is changed, the port won't change to it's default if the user has already set his value
+- bug fix: When type is changed, the port won't change to it's default if the user has already set his value
 
 version 1.3.1
 - @dedo1911 added Italian translation.
@@ -76,3 +79,4 @@ in the /node folder.
 @danielkratz
 @mhentgesarrow
 @dedo1911
+@swengmatt
