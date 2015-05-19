@@ -30,6 +30,7 @@ SFTP/FTP upload plugin for brackets
 
 version 1.3.4
 - showing available languages in Bracket's Plugin Manager
+- added Swedish (sv) translation (thanks @zarnivoop)
 
 version 1.3.3
 - feature: allows password protected RSA encryption keys (@swengmatt).
@@ -83,3 +84,4 @@ in the /node folder.
 @mhentgesarrow
 @dedo1911
 @swengmatt
+@zarnivoop
