@@ -28,6 +28,9 @@ SFTP/FTP upload plugin for brackets
 
 ## Release Notes ##
 
+version 1.3.4
+- showing available languages in Bracket's Plugin Manager
+
 version 1.3.3
 - feature: allows password protected RSA encryption keys (@swengmatt).
 
