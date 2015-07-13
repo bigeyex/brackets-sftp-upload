@@ -37,7 +37,10 @@ If you are comfortable with Github, you can fork this repo, create a new folder 
 version 1.3.5
 - fix: no longer need to restart Brackets upon server connection errors.
 - improved language in error feedback: using "Broken Connection / Wrong Password" for server connection errors.
-- version 1.3.4 is skipped for distribution purpose
+
+version 1.3.4
+- showing available languages in Bracket's Plugin Manager
+- added Swedish (sv) translation (thanks @zarnivoop)
 
 version 1.3.3
 - feature: allows password protected RSA encryption keys (@swengmatt).
@@ -91,3 +94,4 @@ in the /node folder.
 @mhentgesarrow
 @dedo1911
 @swengmatt
+@zarnivoop
