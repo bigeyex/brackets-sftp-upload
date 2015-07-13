@@ -25,8 +25,19 @@ SFTP/FTP upload plugin for brackets
     * (Ctrl-Alt-U / Cmd-Alt-U) to upload the current opening file;
     * (Ctrl-Shift-U / Cmd-Shift-U) to upload all changed files;
     * (Ctrl-Alt-Shift-U / Cmd-Alt-Shift-U) to open up Upload panel.
+    
+## Notes for translators ##
+
+I noticed many people wish to translate this plugin - you are welcomed!
+
+If you are comfortable with Github, you can fork this repo, create a new folder (with language code as its name) in /nls, and put another translated String.js in the folder. Otherwise you can translate String.js in any language folder (root for English) and send me the file (along with your name).
 
 ## Release Notes ##
+
+version 1.3.5
+- fix: no longer need to restart Brackets upon server connection errors.
+- improved language in error feedback: using "Broken Connection / Wrong Password" for server connection errors.
+- version 1.3.4 is skipped for distribution purpose
 
 version 1.3.3
 - feature: allows password protected RSA encryption keys (@swengmatt).

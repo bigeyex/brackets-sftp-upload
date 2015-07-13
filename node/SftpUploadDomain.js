@@ -89,8 +89,11 @@
                         self.sftpClient.on('error', function(err){
                             var message = err.message;
                             if(message == 'connect ECONNREFUSED'){
-                                message = 'Wrong Username or Password';
+                                message = 'Broken Connection / Wrong Password';
                             }
+                            self.sftpClient = null;
+                            self.isRunning = false;
+                            self.jobQueue = [];
                             _domainManager.emitEvent("sftpUpload", "error", [message]);
                         });
                     }
@@ -139,7 +142,16 @@
                             pass: self.config.password
                         });
                     }
-                    
+                    self.ftpClient.on('error', function(err){
+                        var message = err.message;
+                        if(message == 'connect ECONNREFUSED'){
+                            message = 'Broken Connection / Wrong Password';
+                        }
+                        self.ftpClient = null;
+                        self.isRunning = false;
+                        self.jobQueue = [];
+                        _domainManager.emitEvent("sftpUpload", "error", [message]);
+                    });
                     
                     var remotePath = job.remotePath;
                     fs.stat(job.localPath, function(err, stats){
@@ -191,14 +203,15 @@
                 self.isRunning = false;
                 _domainManager.emitEvent("sftpUpload", "jobCompleted");
                 if(self.sftpClient){
-                    self.sftpClient.close();
-                    self.sftpClient = null;
+                    // commented out: try to maintain a long connection for sequential uploading
+//                    self.sftpClient.close();
+//                    self.sftpClient = null;
                 }
                 if(self.ftpClient){
 //                    self.ftpClient.raw.quit(function(err){
 //                        console.log(err);
 //                    });
-                    self.ftpClient = null;
+//                    self.ftpClient = null;
                 }
             }
         };
