@@ -34,6 +34,9 @@ If you are comfortable with Github, you can fork this repo, create a new folder 
 
 ## Release Notes ##
 
+version 1.3.6
+- fix: #21 uploading directories doesn't work for subdirectories (@zarnivoop).
+
 version 1.3.5
 - fix: no longer need to restart Brackets upon server connection errors.
 - improved language in error feedback: using "Broken Connection / Wrong Password" for server connection errors.
