@@ -3,6 +3,7 @@
     var SftpClient = require('scp2'),
         JSFtp = require("jsftp"),
         walk = require('walk'),
+        nodepath = require('path'),
         fs = require('fs'),
         _domainManager;
     
@@ -226,14 +227,8 @@
         self.addDirectory = function(localPath, remotePath, config){
             var walker = walk.walk(localPath, {followLinks:false, filters:[".DS_Store"]});
             walker.on("file", function(root, stats, next){
-                self.add(root+stats.name, remotePath+stats.name, config);
-                next();
-            });
-            
-            walker.on("directories", function(root, stats, next){
-                var relativeRemotePath = remotePath+root.replace(localPath, '');
-                console.log(relativeRemotePath);
-//                self.add(root+'/'+stat.name, remotePath, config);
+                var relativeRemotePath = nodepath.join(remotePath, root.replace(localPath, ''));
+                self.add(nodepath.join(root, stats.name), nodepath.join(relativeRemotePath, stats.name), config);
                 next();
             });
         };
