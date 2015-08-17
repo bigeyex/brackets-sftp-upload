@@ -34,6 +34,9 @@ If you are comfortable with Github, you can fork this repo, create a new folder 
 
 ## Release Notes ##
 
+version 1.3.7
+- added Spanish Translation (thanks @dennistobar)
+
 version 1.3.6
 - fix: #21 uploading directories doesn't work for subdirectories (@zarnivoop).
 
@@ -98,3 +101,4 @@ in the /node folder.
 @dedo1911
 @swengmatt
 @zarnivoop
+@dennistobar (Spanish Translation)
