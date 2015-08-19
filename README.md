@@ -34,6 +34,9 @@ If you are comfortable with Github, you can fork this repo, create a new folder 
 
 ## Release Notes ##
 
+version 1.3.8
+- added Polish Translation (thanks @M1szelek)
+
 version 1.3.7
 - added Spanish Translation (thanks @dennistobar)
 
@@ -102,3 +105,4 @@ in the /node folder.
 @swengmatt
 @zarnivoop
 @dennistobar (Spanish Translation)
+@M1szelek (Polish Translation)
