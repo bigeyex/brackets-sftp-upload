@@ -34,6 +34,9 @@ If you are comfortable with Github, you can fork this repo, create a new folder 
 
 ## Release Notes ##
 
+version 1.3.9
+- added French Translation (thanks Antoine SARRAZIN)
+
 version 1.3.8
 - added Polish Translation (thanks @M1szelek)
 
@@ -106,3 +109,4 @@ in the /node folder.
 @zarnivoop
 @dennistobar (Spanish Translation)
 @M1szelek (Polish Translation)
+Antoine SARRAZIN (French Translation)
