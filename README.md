@@ -34,6 +34,9 @@ If you are comfortable with Github, you can fork this repo, create a new folder 
 
 ## Release Notes ##
 
+version 1.3.11
+- Added Brazilian Portuguese Translation (thanks @elvis-pereira)
+
 version 1.3.10
 - Added Estonian Translation (thanks @marioletta)
 
@@ -114,3 +117,4 @@ in the /node folder.
 @M1szelek (Polish Translation)
 Antoine SARRAZIN (French Translation)
 @marioletta (Estonian Translation)
+@elvis-pereira (Brazilian Portuguese Translation)
