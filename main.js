@@ -142,7 +142,7 @@ define( function( require, exports, module ) {
             });
         }
 
-        $('#sftp-upload-tbody').empty().append(Mustache.render( todoRowTemplate, {
+        $('#sftp-upload-tbody').append(Mustache.render( todoRowTemplate, {
                 strings: Strings,
                 files: files
         } ));
@@ -230,12 +230,16 @@ define( function( require, exports, module ) {
         $('#brackets-sftp-upload .status-stab').text(status);
     }
 
+	function logItems(file, content) {
+		$('#sftp-upload-tbody').append('<tr><td>' + file + '</td>'+content+'</tr>')
+	}
+
     /**
      * Listen for save or refresh and look for todos when needed.
      */
     function registerListeners() {
-        var $documentManager = $( DocumentManager ),
-            $projectManager = $( ProjectManager );
+        var $documentManager = DocumentManager,
+            $projectManager = ProjectManager;
 
         // Listeners bound to Brackets modules.
         $documentManager
@@ -248,6 +252,13 @@ define( function( require, exports, module ) {
                 }
                 var projectUrl = ProjectManager.getProjectRoot().fullPath;
                 var serverInfo = dataStorage.get('server_info');
+				var projectComparePaths = path.substring(0, projectUrl.length);
+				
+				if(projectComparePaths !== projectUrl) {
+					logItems(path, '<td style="color: orange">Non-project file. Can\'t upload</td>');
+					return;
+				}
+				
                 if(serverInfo != null && serverInfo.uploadOnSave){
                     uploadItem(path, path.replace(projectUrl, ''));
                     return;
@@ -320,18 +331,20 @@ define( function( require, exports, module ) {
             enablePanel( true );
         }
 
-        $(_nodeDomain).on('uploading', function(err, msg){
+        _nodeDomain.on('uploading', function(err, msg){
             updateStatus('Uploading: '+msg);
         });
-        $(_nodeDomain).on('uploaded', function(err, msg){
+        _nodeDomain.on('uploaded', function(err, msg){
             var projectUrl = ProjectManager.getProjectRoot().fullPath;
             skipItem(projectUrl+msg);
             updateStatus('Finished: '+msg);
+			logItems(msg, '<td style="color:green">Finished</td>');
         });
-        $(_nodeDomain).on('error', function(err, msg){
+        _nodeDomain.on('error', function(err, msg){
             updateStatus('Error: '+msg);
+			logItems(msg, '<td style="color:red">Error</td>');
         });
-        $(_nodeDomain).on('jobCompleted', function(err, msg){
+        _nodeDomain.on('jobCompleted', function(err, msg){
             showUploadingIconStatus(false);
         });
     } );
