@@ -231,7 +231,8 @@ define( function( require, exports, module ) {
     }
 
 	function logItems(file, content) {
-		$('#sftp-upload-tbody').append('<tr><td>' + file + '</td>'+content+'</tr>')
+		var timeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+		$('#sftp-upload-tbody').append('<tr><td>' + file + '</td>' + content + '<td>' + timeNow + '</td></tr>');
 	}
 
     /**

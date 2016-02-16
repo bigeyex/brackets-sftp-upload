@@ -9,14 +9,12 @@ define( function( require, exports, module ) {
         FileUtils         = brackets.getModule("file/FileUtils"),
         PreferencesManager = brackets.getModule( 'preferences/PreferencesManager' ),
         preferences = PreferencesManager.getExtensionPrefs( 'bigeyex.bracketsSFTPUpload' );
-
-
-
-    var self = this,
+	
+	var self = this,
         propertyList = {},
         projectUrl = '';
 
-    $(ProjectManager).on('projectOpen', function(){
+    ProjectManager.on('projectOpen', function(){
         projectUrl = ProjectManager.getProjectRoot().fullPath;
     });
 
