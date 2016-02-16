@@ -142,7 +142,7 @@ define( function( require, exports, module ) {
             });
         }
 
-        $('#sftp-upload-tbody').append(Mustache.render( todoRowTemplate, {
+        $('#sftp-upload-tbody').prepend(Mustache.render( todoRowTemplate, {
                 strings: Strings,
                 files: files
         } ));
@@ -232,7 +232,7 @@ define( function( require, exports, module ) {
 
 	function logItems(file, content) {
 		var timeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
-		$('#sftp-upload-tbody').append('<tr><td>' + file + '</td>' + content + '<td>' + timeNow + '</td></tr>');
+		$('#sftp-upload-tbody').prepend('<tr><td>' + file + '</td>' + content + '<td>' + timeNow + '</td></tr>');
 	}
 
     /**
