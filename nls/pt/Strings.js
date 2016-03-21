@@ -18,6 +18,7 @@ define( {
 	SERVER_SETUP: "Configurar Servidor",
 	UPLOAD_ALL: "Enviar Todos",
 	SKIP_ALL: "Pular Todos",
+	BACKUP_ALL: "Backup Todos",
 
 	// SETTINGS DIALOG.
 	SETTINGS_DIALOG_TITLE:        "Configurações SFTP",
@@ -28,7 +29,17 @@ define( {
 	SETTINGS_DIALOG_PORT: 		  "Porta",
 	SETTINGS_DIALOG_USERNAME: 	  "Nome de Usuário",
 	SETTINGS_DIALOG_PASSWORD: 	  "Senha",
-    SETTINGS_DIALOG_RSAMSG:       "Caminho para Chave RSA",
+	SETTINGS_DIALOG_RSAMSG:       "Caminho para Chave RSA",
 	SETTINGS_DIALOG_PATH: 		  "Caminho no Servidor",
-    SETTINGS_UPLOAD_ON_SAVE:      "Enviar ao salvar"
+	SETTINGS_UPLOAD_ON_SAVE:      "Enviar ao salvar",
+	SETTINGS_DIALOG_PATH_BACKUP:  "Pasta para Backups",
+	
+	// BACKUP DIALOG
+	BACKUP_FILES_TITLE:      "SFTP - Backup de Arquivos Alterados",
+	BACKUP_FILES_LOCAL_PATH:      "Salvar em",
+	BACKUP_FILES_START:      "Iniciar Download",
+	
+	// NO SERVER SETUP DIALOG
+	NO_SEVER_SETUP: "SFTP - Nenhuma configuração de servidor",
+	SERVER_SETUP_NEDEED: "Por favor realize a configuração do servidor (S)FTP antes de realizar backups ou uploads."
 } );
