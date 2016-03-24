@@ -13,7 +13,8 @@ define( function( require, exports ) {
         dialog,
         HasPortChanged,
         defaultSFTPport = 22,
-        defaultFTPport  = 21;
+        defaultFTPport  = 21,
+        defaultBackUpPath = 'sftp-backups';
     
     /**
      * Set each value of the preferences in dialog.
@@ -21,6 +22,12 @@ define( function( require, exports ) {
     function setValues( values ) {
     }
     
+    /**
+     * Exposed method to get the backup folder name
+     */
+    exports.getFolder = function() {
+        return dialog !== undefined ? $(".input-backup-path", dialog.getElement()).val() : defaultBackUpPath;
+    }
     /**
      * Initialize dialog values.
      */
@@ -36,14 +43,28 @@ define( function( require, exports ) {
             }
         });
     }
-    /**
+    
+	/**
+     * Exposed method to update footer status
+     */
+	exports.updateStatus = function(status) {
+		if ( dialog !== undefined ) {
+			$("label.test-connection-status", dialog.getElement()).html(status);	
+		}
+	};
+    
+	/**
      * Exposed method to show dialog.
      */
-    exports.showDialog = function() {
+    exports.showDialog = function(testConnection) {
         // Compile dialog template.
         var serverInfo = dataStorage.get('server_info');
         if(!serverInfo){
-            serverInfo = {method:'sftp', host:'', port:defaultSFTPport, username:'', rsaPath:'', password:'', serverPath:'', uploadOnSave:0};
+            serverInfo = {method:'sftp', host:'', port:defaultSFTPport, username:'', rsaPath:'', password:'', serverPath:'', uploadOnSave:0, backupPath:defaultBackUpPath};
+        }
+        // For compability with previous version
+        else if ( serverInfo.backupPath === undefined ) {
+            serverInfo.backupPath = defaultBackUpPath;
         }
         
         var compiledTemplate = Mustache.render( settingsDialogTemplate, {
@@ -52,7 +73,7 @@ define( function( require, exports ) {
         } );
         
         // Save dialog to variable.
-        dialog = Dialogs.showModalDialogUsingTemplate( compiledTemplate );
+        dialog = Dialogs.showModalDialogUsingTemplate( compiledTemplate, false );
         
         // Initialize dialog values.
         init();
@@ -68,23 +89,44 @@ define( function( require, exports ) {
         }
         $('.input-method').val(serverInfo.method);
 
-        // Open dialog.
-        dialog.done( function( buttonId ) {
-            // Save preferences if OK button was clicked.
+        // manually handle ESC and buttons Key because of autoDismiss = false
+        $(dialog.getElement())
+        .off('keyup')
+        .on('keyup', function(evt) { 
+            if ( evt.keyCode === 27 ) {
+                dialog.close();
+            }
+        })
+        .off('click', 'button')
+        .on('click', 'button', function(evt) {
+            var buttonId = $(this).data('button-id'),
+                _getInfo = function() {
+                    var $dialog = dialog.getElement();
+                    return {
+                        method: $('.input-method', $dialog).val(),
+                        host: $('.input-host', $dialog).val(),
+                        port: $('.input-port', $dialog).val(),
+                        username: $('.input-username', $dialog).val(),
+                        rsaPath: $('.input-rsa-path', $dialog).val(),
+                        password: $('.input-password', $dialog).val(),
+                        serverPath: $('.input-server-path', $dialog).val(),
+                        uploadOnSave: $('.input-save', $dialog).is(':checked')
+                    }	
+                };
+
             if ( buttonId === 'ok' ) {
-                var $dialog = dialog.getElement();
-                var serverInfo = {
-                    method: $('.input-method', $dialog).val(),
-                    host: $('.input-host', $dialog).val(),
-                    port: $('.input-port', $dialog).val(),
-                    username: $('.input-username', $dialog).val(),
-                    rsaPath: $('.input-rsa-path', $dialog).val(),
-                    password: $('.input-password', $dialog).val(),
-                    serverPath: $('.input-server-path', $dialog).val(),
-                    uploadOnSave: $('.input-save', $dialog).is(':checked')
-                }
+                var serverInfo = _getInfo();
                 dataStorage.set('server_info', serverInfo);
+                dialog.close();
+            }
+            else if (buttonId === 'test') {
+                var serverInfo = _getInfo();
+                testConnection.call(testConnection, serverInfo);
+            }
+            else {
+                dialog.close();
             }
         });
+		
     };
 });

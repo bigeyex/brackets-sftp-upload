@@ -33,6 +33,7 @@ define( function( require, exports, module ) {
         Strings = require( 'modules/Strings' ),
         dataStorage = require( 'modules/DataStorageManager' ),
         settingsDialog = require( 'modules/SettingsDialog' ),
+        backupDialog = require('modules/BackupFilesDialog'),
 
         // Preferences.
         preferences = PreferencesManager.getExtensionPrefs( 'bigeyex.bracketsSFTPUpload' ),
@@ -49,7 +50,9 @@ define( function( require, exports, module ) {
 
         // Get view menu.
         menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU ),
-        contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
+        contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU),
+        is_downloading = false,
+        downloadCounts = { ok: 0, error: 0};
 
     // Define preferences.
     preferences.definePreference( 'enabled', 'boolean', false );
@@ -80,6 +83,16 @@ define( function( require, exports, module ) {
     // Load stylesheet.
     ExtensionUtils.loadStyleSheet( module, 'todo.css' );
 
+    /**
+    * Get saved serverInfo 
+    */
+    function _getServerInfo() {
+        var serverInfo = dataStorage.get('server_info');
+        if ( serverInfo.backupPath === undefined ) serverInfo.backupPath = settingsDialog.getFolder();
+
+        return serverInfo;
+    }
+	
     /**
      * Set state of extension.
      */
@@ -124,7 +137,7 @@ define( function( require, exports, module ) {
 
         // Save enabled state.
         preferences.set( 'enabled', enabled );
-        preferences.save()
+        preferences.save();
 
         // Mark menu item as enabled/disabled.
         CommandManager.get( COMMAND_ID ).setChecked( enabled );
@@ -211,7 +224,73 @@ define( function( require, exports, module ) {
             updateStatus(err);
         });
     }
+ 
+    // backup all files in the panel to a folder
+    function downloadAllItems(folder){
+        is_downloading = true;
+        downloadCounts.ok = 0;
+        downloadCounts.error = 0;
+        var serverInfo = _getServerInfo(), 
+            trs = $('#brackets-sftp-upload tr .upload-button'),
+            filelist = [],
+            projectUrl = ProjectManager.getProjectRoot().fullPath,
+            basePath = _getBackupFullPath(serverInfo, folder);
 
+        for(var i=0;i<trs.length;i++){
+            var filePath = $(trs[i]).attr('x-file').replace(projectUrl, ''),
+                arg = {
+                    localPath: (basePath + filePath),
+                    remotePath: $(trs[i]).attr('r-file')
+                };
+
+            filelist.push(arg);
+        }
+        disableButtons();
+        _nodeDomain.exec('downloadAll', filelist, serverInfo)
+            .fail(function(err){
+                is_downloading = false;
+                showUploadingIconStatus(false);
+                updateStatus(err);
+                enableButtons();
+            });
+    }
+	
+    // Get the full path of the backup folder
+    function _getBackupFullPath(serverInfo, folder) {
+        var projectUrl = ProjectManager.getProjectRoot().fullPath,
+            basePath;
+
+        if ( serverInfo.backupPath.indexOf(":") > -1 ) { // full dir
+            basePath = serverInfo.backupPath + folder + "/";
+        }
+        else {
+            basePath = projectUrl + serverInfo.backupPath + "/" + folder + "/";
+        }
+        // replace any '//' to '/'
+        basePath = basePath.replace(/\/+/g, "/");
+        return basePath;
+    }
+
+    // Test Server Connection
+    function testConnection(serverInfo) {
+        settingsDialog.updateStatus(Strings.TEST_CONNECTION_STARTING);
+        _nodeDomain.exec('testConnection', serverInfo)
+            .fail(function(err){
+                settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED + ":" + err);
+            });
+    }
+
+    // Disable all buttons in the panel
+    function disableButtons() {
+        $('#brackets-sftp-upload button').attr('disabled', 'disabled');
+    }
+
+    // Enable all buttons in the panel
+    function enableButtons() {
+        $('#brackets-sftp-upload button').removeAttr('disabled');
+    }
+
+    // Remove item from the changed files list
     function skipItem(path) {
         var changedFiles = dataStorage.get('changed_files') || {};
         $('#brackets-sftp-upload tr[x-file="'+path+'"]').remove();
@@ -221,11 +300,13 @@ define( function( require, exports, module ) {
         }
     }
 
+    // Remove all itens from the changed files list
     function skipAllItems(){
         $('#brackets-sftp-upload tr').remove();
         dataStorage.set('changed_files', {});
     }
-
+	
+    // Update Panel Status
     function updateStatus(status){
         $('#brackets-sftp-upload .status-stab').text(status);
     }
@@ -248,7 +329,7 @@ define( function( require, exports, module ) {
                 }
                 var projectUrl = ProjectManager.getProjectRoot().fullPath;
                 var serverInfo = dataStorage.get('server_info');
-                if(serverInfo != null && serverInfo.uploadOnSave){
+                if(serverInfo !== null && serverInfo.uploadOnSave){
                     uploadItem(path, path.replace(projectUrl, ''));
                     return;
                 }
@@ -303,17 +384,17 @@ define( function( require, exports, module ) {
         } ).appendTo( '#main-toolbar .buttons' );
 
         $todoPanel.on('click', '.btn-server-setup',function(){
-            settingsDialog.showDialog();
-        });
-
-        $todoPanel.on('click', '.btn-upload-all',function(){
+            settingsDialog.showDialog(testConnection);
+        })
+        .on('click', '.btn-upload-all',function(){
             uploadAllItems();
-        });
-
-        $todoPanel.on('click', '.btn-skip-all',function(){
+        })
+        .on('click', '.btn-skip-all',function(){
             skipAllItems();
+        })
+        .on('click', '.btn-backup-all', function(){
+            backupDialog.showDialog(downloadAllItems, _getBackupFullPath(_getServerInfo(), ''));
         });
-
 
         // Enable extension if loaded last time.
         if ( preferences.get( 'enabled' ) ) {
@@ -322,17 +403,41 @@ define( function( require, exports, module ) {
 
         $(_nodeDomain).on('uploading', function(err, msg){
             updateStatus('Uploading: '+msg);
-        });
-        $(_nodeDomain).on('uploaded', function(err, msg){
+        })
+        .on('downloading', function(err, remoteFile, localFile){
+            updateStatus('Downloading: '+remoteFile + '('+ downloadCounts.ok + ' ok / ' + downloadCounts.error + ' errors)');
+        })
+        .on('uploaded', function(err, msg){
             var projectUrl = ProjectManager.getProjectRoot().fullPath;
             skipItem(projectUrl+msg);
             updateStatus('Finished: '+msg);
-        });
-        $(_nodeDomain).on('error', function(err, msg){
-            updateStatus('Error: '+msg);
-        });
-        $(_nodeDomain).on('jobCompleted', function(err, msg){
+        })
+        .on('downloaded', function(err, remoteFile, localFile){
+            downloadCounts.ok = downloadCounts.ok + 1;
+            updateStatus('Downloaded: '+remoteFile);
+        })
+        .on('connection-tested', function(err, ok, msg){
+            if (ok) {
+                settingsDialog.updateStatus(Strings.TEST_CONNECTION_SUCCESS);
+            }
+            else {
+                settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED);
+            }
+        })
+        .on('error', function(err, msg){
+            if ( is_downloading ) {
+                downloadCounts.error = downloadCounts.error + 1;
+            }
+            else {
+                updateStatus('Error: ' + msg);
+            }
+        })
+        .on('jobCompleted', function(err, msg){
             showUploadingIconStatus(false);
+            if ( is_downloading ) {
+                updateStatus('Backup Complete! ' + '('+ downloadCounts.ok + ' ok / ' + downloadCounts.error + ' errors)' );
+                enableButtons();
+            }
         });
     } );
 } );
