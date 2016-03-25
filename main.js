@@ -34,6 +34,7 @@ define( function( require, exports, module ) {
         dataStorage = require( 'modules/DataStorageManager' ),
         settingsDialog = require( 'modules/SettingsDialog' ),
         backupDialog = require('modules/BackupFilesDialog'),
+        logsDialog = require('modules/LogViewerDialog'),
 
         // Preferences.
         preferences = PreferencesManager.getExtensionPrefs( 'bigeyex.bracketsSFTPUpload' ),
@@ -41,7 +42,7 @@ define( function( require, exports, module ) {
         // Mustache templates.
         todoPanelTemplate = require( 'text!html/panel.html' ),
         todoRowTemplate = require( 'text!html/row.html' ),
-
+        
         // Setup extension.
         serverInfo, //sftp username/password etc;
         $todoPanel,
@@ -52,7 +53,8 @@ define( function( require, exports, module ) {
         menu = Menus.getMenu( Menus.AppMenuBar.VIEW_MENU ),
         contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU),
         is_downloading = false,
-        downloadCounts = { ok: 0, error: 0};
+        downloadCounts = { ok: 0, error: 0},
+        consoleLogs = [];
 
     // Define preferences.
     preferences.definePreference( 'enabled', 'boolean', false );
@@ -310,6 +312,10 @@ define( function( require, exports, module ) {
     function updateStatus(status){
         $('#brackets-sftp-upload .status-stab').text(status);
     }
+    
+    function addLog(type, text) {
+        consoleLogs.push({type: type, text: text});
+    }
 
     /**
      * Listen for save or refresh and look for todos when needed.
@@ -394,6 +400,11 @@ define( function( require, exports, module ) {
         })
         .on('click', '.btn-backup-all', function(){
             backupDialog.showDialog(downloadAllItems, _getBackupFullPath(_getServerInfo(), ''));
+        })
+        .on('click', '.status-stab', function() {
+            logsDialog.showDialog(consoleLogs, function() {
+               consoleLogs = []; 
+            });
         });
 
         // Enable extension if loaded last time.
@@ -411,10 +422,12 @@ define( function( require, exports, module ) {
             var projectUrl = ProjectManager.getProjectRoot().fullPath;
             skipItem(projectUrl+msg);
             updateStatus('Finished: '+msg);
+            addLog('Uploaded', msg);
         })
         .on('downloaded', function(err, remoteFile, localFile){
             downloadCounts.ok = downloadCounts.ok + 1;
             updateStatus('Downloaded: '+remoteFile);
+            addLog('Downloaded', remoteFile);
         })
         .on('connection-tested', function(err, ok, msg){
             if (ok) {
@@ -422,6 +435,7 @@ define( function( require, exports, module ) {
             }
             else {
                 settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED);
+                addLog('Error', msg);
             }
         })
         .on('error', function(err, msg){
@@ -431,6 +445,7 @@ define( function( require, exports, module ) {
             else {
                 updateStatus('Error: ' + msg);
             }
+            addLog('Error', msg);
         })
         .on('jobCompleted', function(err, msg){
             showUploadingIconStatus(false);

@@ -13,6 +13,7 @@ define( {
 	CANCEL: "Cancel",
 	UPLOAD: "Upload",
 	SKIP:   "Skip",
+    	CLEAR: "Clear",
 	TEST_CONNECTION: "Test Connection",
 	
 	// TOOLBAR.
@@ -47,6 +48,9 @@ define( {
 	// Autenthication
 	TEST_CONNECTION_STARTING: 'Starting authentication...',
 	TEST_CONNECTION_SUCCESS: 'Authentication successfull',
-	TEST_CONNECTION_FAILED: 'Authentication failed'
-	
+	TEST_CONNECTION_FAILED: 'Authentication failed',
+    
+    	// Log Viewer
+    	LOG_VIEWER_TITLE: 'Log Viewer',
+	LOG_VIEWER_EMPTY: 'No log to show.'
 } );
