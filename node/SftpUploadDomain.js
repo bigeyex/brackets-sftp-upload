@@ -10,6 +10,15 @@
     
     JSFtp = require('jsftp-mkdirp')(JSFtp); 
 
+	var clog = function(text, extra) {
+		if (typeof console === 'object') {
+			console.log('SFTPUploadDomain: ' + text + (
+				typeof extra === 'object' ? (' => ' + JSON.stringify(extra)) :
+				(typeof extra === 'string' ? (' => ' + extra) : '')
+			));
+		}
+	};
+	
     function SftpJobs(sftpClient){
         this.config = {
             host: '',
@@ -140,7 +149,8 @@
                             defaults.password = self.config.password;
                         }
                         self.sftpClient.defaults(defaults);
-                        self.sftpClient.on('error', function(err){							
+                        self.sftpClient.on('error', function(err){
+							clog('SFTP Error', err);
                             var message = err.message;
                             if(message == 'connect ECONNREFUSED'){
                                 message = 'Broken Connection / Wrong Password';
@@ -180,9 +190,10 @@
                         });
                     }
                     else if ( job.type === 'test-connection' ) {
-                        self.sftpClient.testConnection(function(err, isOk) {
+                        self.sftpClient.sftp(function(err, sftp) {
+                            var isOk = err === undefined || err === null || err === false;
                             _domainManager.emitEvent("sftpUpload", "connection-tested", [isOk, ""]);
-                            self.run();
+                            self.sftpClient.close();
                         });
                     }
                     else {
@@ -231,6 +242,7 @@
                         });
                     }
                     self.ftpClient.on('error', function(err){
+						clog('ftp error', err);
                         var message = err.message;
                         if(message == 'connect ECONNREFUSED'){
                             message = 'Broken Connection / Wrong Password';
@@ -257,6 +269,10 @@
                     }
                     else if ( job.type === 'test-connection' ) {
                         self.ftpClient.raw.stat(function(err, data) {
+							clog('ftp test-connection', {
+								err: err,
+								data: data
+							});
                             if ( data.code === 211 ) {  // Successfull auth
                                 _domainManager.emitEvent("sftpUpload", "connection-tested", [true, data.text]);
                             }
@@ -331,6 +347,8 @@
         };
         		
         self.add = function(localPath, remotePath, config, jobType){
+			remotePath = remotePath.replace(/\\/g, "/");
+			localPath = localPath.replace(/\\/g, "/");
             self.jobQueue.push({localPath: localPath, remotePath: remotePath, config: config, type: jobType});
             if(!self.isRunning){
                 self.run();
@@ -338,12 +356,29 @@
         };
         
         self.addDirectory = function(localPath, remotePath, config){
-            var walker = walk.walk(localPath, {followLinks:false, filters:[".DS_Store"]});
+            var walker = walk.walk(localPath, {followLinks:false, filters:[".DS_Store"]}),
+				files_added = 0,
+				trigger_on = 1,
+				tmp_count = 0;
+			
             walker.on("file", function(root, stats, next){
                 var relativeRemotePath = nodepath.join(remotePath, root.replace(localPath, ''));
+				if ( relativeRemotePath.indexOf('.DS_Store') > 0 ) {
+					return next();
+				}
                 self.add(nodepath.join(root, stats.name), nodepath.join(relativeRemotePath, stats.name), config);
-                next();
+                
+				files_added = files_added +1;
+				tmp_count = tmp_count + 1;
+				if ( tmp_count > trigger_on ) {
+					_domainManager.emitEvent("sftpUpload", "queued", [files_added]);
+					tmp_count = 0;
+				}
+				next();
             });
+			walker.on('end', function() {
+				_domainManager.emitEvent("sftpUpload", "queuedend", [files_added]);
+			});
         };
         
         self._getFullRemotePath = function(remotePath){
@@ -362,6 +397,7 @@
     
     function cmdUpload(localPath, remotePath, config){
         if(config === undefined) {config=null;}
+		clog('Start Upload: ' + localPath);
         sftpJobs.add(localPath, remotePath, config);
     }
 
@@ -381,6 +417,7 @@
 	
 	function cmdTestConnection(config) {
 		if(config === undefined) {config=null;}
+		clog('Start Connection Test', config);
 		sftpJobs.add('', '', config, 'test-connection');
 	}
 	
@@ -540,6 +577,25 @@
             }]
         );
 		
+        domainManager.registerEvent(
+            "sftpUpload",
+            "queued",
+            [{
+                name: "num",
+                type: "int",
+                description: "number of files queued until now"
+            }]
+        );
+		
+        domainManager.registerEvent(
+            "sftpUpload",
+            "queuedend",
+            [{
+                name: "num",
+                type: "int",
+                description: "number of files queued"
+            }]
+        );
         domainManager.registerEvent(
             "sftpUpload",
             "jobCompleted",

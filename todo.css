@@ -204,3 +204,68 @@
     margin-top: 7px;
 }
 
+#sftpupload-log-viewer-dialog { width: 70%; }
+#sftpupload-settings-dialog { width: 750px; }
+#sftpuoload-settings-server-list {
+	background: #333;
+	padding: 0.5em;
+	/*border: 1px solid #999;*/
+	list-style-type: none;
+	margin: 0;
+	min-height: 225px;
+}
+#sftpuoload-settings-server-list li {
+	margin-bottom: 5px;
+	font-size: 1.1em;
+	position: relative;
+	padding: 0.2em 0.2em;
+}
+#sftpuoload-settings-server-list li.selected {
+	color: #FFF;
+	font-weight: bolder;
+	background: #2c2c2c;
+}
+#sftpuoload-settings-server-list li:hover {
+	background: #3c3c3c;
+	cursor: pointer;
+	color: #000;
+	font-weight: bold;
+}
+#sftpuoload-settings-server-list li > a.close { display: none;  }
+#sftpuoload-settings-server-list li:hover > a.close { 
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	display: block;
+	color: #FFF;
+	font-size: 1em;
+	cursor: pointer;
+	padding: 0.2em 0.5em;
+	margin: 0;
+}
+#sftpuoload-settings-server-list li:hover > a.close:hover {
+	background: #852222;
+	color: #FFF;
+}
+button.btn-server-setup > b {
+	font-weight: bold;
+	color: #FFF;
+}
+.sftp-upload-settings-list-panel {
+	float: left;
+	width: 250px;
+}
+
+.sftp-upload-settings-list-panel {
+	float: left;
+	display: inline-block;
+	margin-left: 10px;
+}
+
+.sftp-clearfix:after { 
+   content: " ";
+   display: block; 
+   height: 0; 
+   clear: both;
+   *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML += '<div class="ie7-clear"></div>' );
+}

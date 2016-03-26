@@ -31,19 +31,24 @@ define( function( require, exports ) {
     /**
      * Exposed method to show dialog.
      */
+	exports.showMessage = function(title, text) {
+		var compiledTemplate = Mustache.render(msgDialogTemplate, {
+			Strings: Strings,
+			Message: {
+				Title: title,
+				Text: text
+			}
+		});
+		Dialogs.showModalDialogUsingTemplate( compiledTemplate );
+	}
     exports.showDialog = function(callback, localPath) {
         // Compile dialog template.
         var serverInfo = dataStorage.get('server_info'),
+			self = this,
 			compiledTemplate;
 		
         if(!serverInfo || serverInfo.host === '' ){
-			compiledTemplate = Mustache.render(msgDialogTemplate, {
-				Strings: Strings,
-				Message: {
-					Title: Strings.NO_SEVER_SETUP,
-					Text: Strings.SERVER_SETUP_NEDEED
-				}
-			});
+			self.showMessage(Strings.NO_SERVER_SETUP, Strings.SERVER_SETUP_NEDEED);
         }
 		else {
 			compiledTemplate= Mustache.render( bkpDialogTemplate, {
