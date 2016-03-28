@@ -1,3 +1,4 @@
+/*jshint node: true, jquery: true*/
 define( function( require, exports ) {
     'use strict';
     

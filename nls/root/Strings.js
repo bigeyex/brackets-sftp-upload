@@ -4,17 +4,21 @@ define( {
     
     // MENUS
     UPLOAD_MENU_NAME: "Upload via SFTP",
-    DOWNLOAD_MENU_NAME: "Download from Server",
+    DOWNLOAD_MENU_NAME: "Download from Server (Local Walk)",
+    DOWNLOAD_MENU_NAME_FTP_WALK: "Download from Server (FTP Walk)",
 	
 	// GENERAL.
 	YES:    "Yes",
 	NO:     "No",
 	OK:     "Ok",
+	SAVE:   "Save",
 	CANCEL: "Cancel",
 	UPLOAD: "Upload",
 	SKIP:   "Skip",
-    	CLEAR: "Clear",
+	CLEAR: "Clear",
+	SERVER: "Server",
 	TEST_CONNECTION: "Test Connection",
+	VIEW_LOG: "View Log",
 	
 	// TOOLBAR.
 	SERVER_SETUP: "Server Setup",
@@ -35,22 +39,29 @@ define( {
 	SETTINGS_DIALOG_PATH: 		  "Server Path",
 	SETTINGS_UPLOAD_ON_SAVE:      "Upload On Save",
 	SETTINGS_DIALOG_PATH_BACKUP:  "Backup Path",
-		
+	SETTINGS_DIALOG_SERVER_NAME:  "Name",
+	SETTINGS_DIALOG_SERVER_LIST:  "Servers",
+	SETTINGS_DIALOG_SERVER_DEFAULT_NAME:  "Default",
+	SETTINGS_DIALOG_SERVER_NEW:  "New Server",
+	SETTINGS_DIALOG_SAVE_TO_APLLY: "Click save to aplly changes",
+	SETTINGS_DIALOG_SAVED: "Settings Saved",
+	
 	// BACKUP DIALOG
 	BACKUP_FILES_TITLE:      "SFTP - Backup Changed Files",
 	BACKUP_FILES_LOCAL_PATH:      "Save To",
 	BACKUP_FILES_START:      "Start Download",
 	
 	// NO SERVER SETUP DIALOG
-	NO_SEVER_SETUP: "SFTP - No Server Setup",
+	NO_SERVER_SETUP: "SFTP - No Server Setup",
 	SERVER_SETUP_NEDEED: "Please create an server setup before uploading or backup.",
+	NO_BACKUP_FOLDER: "No backup folder configured for this server. ",
 	
 	// Autenthication
 	TEST_CONNECTION_STARTING: 'Starting authentication...',
 	TEST_CONNECTION_SUCCESS: 'Authentication successfull',
 	TEST_CONNECTION_FAILED: 'Authentication failed',
     
-    	// Log Viewer
-    	LOG_VIEWER_TITLE: 'Log Viewer',
+    // Log Viewer
+	LOG_VIEWER_TITLE: 'Log Viewer',
 	LOG_VIEWER_EMPTY: 'No log to show.'
 } );

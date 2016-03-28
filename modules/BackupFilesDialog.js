@@ -41,23 +41,17 @@ define( function( require, exports ) {
 		});
 		Dialogs.showModalDialogUsingTemplate( compiledTemplate );
 	}
-    exports.showDialog = function(callback, localPath) {
+    exports.showDialog = function(serverInfo, callback, localPath) {
         // Compile dialog template.
-        var serverInfo = dataStorage.get('server_info'),
-			self = this,
+        var self = this,
 			compiledTemplate;
 		
-        if(!serverInfo || serverInfo.host === '' ){
-			self.showMessage(Strings.NO_SERVER_SETUP, Strings.SERVER_SETUP_NEDEED);
-        }
-		else {
-			compiledTemplate= Mustache.render( bkpDialogTemplate, {
-				Strings: Strings,
-				info: $.extend({ folder: defaultFolderName}, serverInfo),
-				LocalPath: localPath
-			});
-		}
-        
+		compiledTemplate= Mustache.render( bkpDialogTemplate, {
+			Strings: Strings,
+			info: $.extend({ folder: defaultFolderName}, serverInfo),
+			LocalPath: localPath
+		});
+		
         // Save dialog to variable.
         dialog = Dialogs.showModalDialogUsingTemplate( compiledTemplate );
         

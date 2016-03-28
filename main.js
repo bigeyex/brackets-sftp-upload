@@ -32,7 +32,9 @@ define( function( require, exports, module ) {
 		COMMAND_ID_UPLOAD_ALL = 'bigeyex.bracketsSFTPUpload.uploadAll',
 		COMMAND_ID_DOWNLOAD_ALL = 'bigeyex.bracketsSFTPUpload.downloadAll',
 		COMMAND_ID_VIEW_LOG = 'bigeyex.bracketsSFTPUpload.viewLog',
-
+		COMMAND_ID_DOWNLOAD = 'bigeyex.bracketsSFTPUpload.download',
+		COMMAND_ID_DOWNLOAD_FTP_WALK = 'bigeyex.bracketsSFTPUpload.downloadFtpWalk',
+		
 		Strings = require('modules/Strings'),
 		dataStorage = require('modules/DataStorageManager'),
 		settingsDialog = require('modules/SettingsDialog'),
@@ -121,8 +123,10 @@ define( function( require, exports, module ) {
 	// Register extension.
 	CommandManager.register(Strings.EXTENSION_NAME, COMMAND_ID, togglePanel);
 	CommandManager.register(Strings.UPLOAD_MENU_NAME, COMMAND_ID_UPLOAD, uploadMenuAction);
+	CommandManager.register(Strings.DOWNLOAD_MENU_NAME, COMMAND_ID_DOWNLOAD, downloadMenuAction);
+	CommandManager.register(Strings.DOWNLOAD_MENU_NAME_FTP_WALK, COMMAND_ID_DOWNLOAD_FTP_WALK, downloadMenuActionFtpWalk);
 	CommandManager.register(Strings.UPLOAD_ALL, COMMAND_ID_UPLOAD_ALL, uploadAllItems);
-	CommandManager.register(Strings.BACKUP_ALL, COMMAND_ID_DOWNLOAD_ALL, setUpDownLoadFolder);
+	CommandManager.register(Strings.BACKUP_ALL, COMMAND_ID_DOWNLOAD_ALL, startBackup);
 	CommandManager.register(Strings.VIEW_LOG, COMMAND_ID_VIEW_LOG, viewLog);
 	
 	// Add command to menu.
@@ -132,15 +136,17 @@ define( function( require, exports, module ) {
 		menu.addMenuItem(COMMAND_ID, 'Ctrl-Alt-Shift-U');
 		menu.addMenuItem(COMMAND_ID_UPLOAD, 'Ctrl-Alt-U');
 		menu.addMenuItem(COMMAND_ID_UPLOAD_ALL, 'Ctrl-Shift-U');
-		menu.addMenuItem(COMMAND_ID_DOWNLOAD_ALL, 'Ctrl-Alt-D');
-		menu.addMenuItem(COMMAND_ID_VIEW_LOG, 'Ctrl-Alt-V');
+		//menu.addMenuItem(COMMAND_ID_DOWNLOAD_ALL, 'Ctrl-Alt-D');
+		//menu.addMenuItem(COMMAND_ID_VIEW_LOG, 'Ctrl-Alt-V');
 		menu.addMenuDivider();
 	}
 
-    if ( contextMenu !== undefined ) {
-        contextMenu.addMenuDivider();
-        contextMenu.addMenuItem( COMMAND_ID_UPLOAD );
-    }
+	if (contextMenu !== undefined) {
+		contextMenu.addMenuDivider();
+		contextMenu.addMenuItem(COMMAND_ID_UPLOAD);
+		contextMenu.addMenuItem(COMMAND_ID_DOWNLOAD);
+		contextMenu.addMenuItem(COMMAND_ID_DOWNLOAD_FTP_WALK);
+	}
 
     // Load stylesheet.
     ExtensionUtils.loadStyleSheet( module, 'todo.css' );
@@ -176,11 +182,13 @@ define( function( require, exports, module ) {
 		enablePanel(!enabled);
 	}
 
-	// Upload from Project Explorer Context Menu
+	/**
+		Upload from Project Explorer Context Menu
+	*/
 	function uploadMenuAction() {
 		var item = ProjectManager.getSelectedItem(),
 			projectUrl = ProjectManager.getProjectRoot().fullPath,
-			remotePath = item.fullPath.replace(projectUrl, '').replace(/\\/g, "/");
+			remotePath = item.fullPath.replace(projectUrl, '');
 		if (item.isFile) {
 			uploadItem(item.fullPath, remotePath);
 		} else {
@@ -188,6 +196,44 @@ define( function( require, exports, module ) {
 		}
 	}
 
+	/**
+		Download from Project Explorer Context Menu
+	*/
+	function downloadMenuAction() {
+		var item = ProjectManager.getSelectedItem(),
+			projectUrl = ProjectManager.getProjectRoot().fullPath,
+			remotePath = item.fullPath.replace(projectUrl, '');
+		
+		setUpDownLoadFolder(function(folder) {
+			if ( item.isFile ) {
+				downloadFile(remotePath, folder + FileUtils.getBaseName(item.fullPath), false);	
+			}
+			else {
+				downloadFile(remotePath, folder, item.fullPath);
+			}
+			
+		});
+	}
+	
+	/**
+		Download from Project Explorer Context Menu
+	*/
+	function downloadMenuActionFtpWalk() {
+		var item = ProjectManager.getSelectedItem(),
+			projectUrl = ProjectManager.getProjectRoot().fullPath,
+			remotePath = item.fullPath.replace(projectUrl, '');
+		
+		setUpDownLoadFolder(function(folder) {
+			if ( item.isFile ) {
+				downloadFile(remotePath, folder + FileUtils.getBaseName(item.fullPath), false);	
+			}
+			else {
+				downloadFile(remotePath, folder, true);
+			}
+		});
+	}
+	
+	
 	/**
 	 * Initialize extension.
 	 */
@@ -316,13 +362,13 @@ define( function( require, exports, module ) {
 	}
 
 	// backup all files in the panel to a folder
-	function downloadAllItems(folder) {
+	function downloadAllItems(toFolder) {
 
 		var serverInfo = _getServerInfo(),
 			trs = $('#brackets-sftp-upload tr .upload-button'),
 			filelist = [],
 			projectUrl = ProjectManager.getProjectRoot().fullPath,
-			basePath = _getBackupFullPath(serverInfo, folder);
+			basePath = _getBackupFullPath(serverInfo, toFolder);
 
 		for (var i = 0; i < trs.length; i++) {
 			var $el = $(trs[i]),
@@ -347,9 +393,11 @@ define( function( require, exports, module ) {
 	}
 
 	// Opens dialog to make backup
-	function setUpDownLoadFolder() {
-		var path = _getBackupFullPath(_getServerInfo(), '');
-		if ( path ) backupDialog.showDialog(downloadAllItems, path);
+	function setUpDownLoadFolder(callback) {
+		var serverInfo = _getServerInfo(),
+			path = _getBackupFullPath(serverInfo, '');
+		
+		if ( path ) backupDialog.showDialog(serverInfo, callback, path);
 	}
 	
 	// Get the full path of the backup folder
@@ -376,14 +424,44 @@ define( function( require, exports, module ) {
 		return basePath;
 	}
 
-    // Test Server Connection
-    function testConnection(serverInfo) {
-        settingsDialog.updateStatus(Strings.TEST_CONNECTION_STARTING);
-        _nodeDomain.exec('testConnection', serverInfo)
-            .fail(function(err){
-                settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED + ":" + err);
-            });
-    }
+	function startBackup() {
+		setUpDownLoadFolder(downloadAllItems);
+	}
+	
+	function downloadFile(remotePath, localPath, walkPath) {
+		
+		var config = _getServerInfo(),
+			basePath = _getBackupFullPath(config, localPath);
+
+		disableButtons();
+		
+		_nodeDomain.exec('download', remotePath, basePath, walkPath, config)
+			.fail(function (err) {
+				status.is_downloading = false;
+				showUploadingIconStatus(false);
+				updateStatus(err);
+				enableButtons();
+			});
+	}
+	
+	function serverBrowser(remotePath) {
+		var config = _getServerInfo();
+		status.status('Listing...');
+		_nodeDomain.exec('list', remotePath || '', config)
+			.fail(function (err) {
+				status.log('Error', err);
+			});
+		
+	}
+	
+	// Test Server Connection
+	function testConnection(serverInfo) {
+		settingsDialog.updateStatus(Strings.TEST_CONNECTION_STARTING);
+		_nodeDomain.exec('testConnection', serverInfo)
+			.fail(function (err) {
+				settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED + ":" + err);
+			});
+	}
 
     // Disable all buttons in the panel
     function disableButtons() {
@@ -423,8 +501,7 @@ define( function( require, exports, module ) {
 			$projectManager = $(ProjectManager);
 
 		// Listeners bound to Brackets modules.
-		$documentManager
-			.on('documentSaved.todo', function (event, document) {
+		DocumentManager.on('documentSaved.todo', function (event, document) {
 				//TODO: add current document to change list
 				var path = document.file.fullPath,
 					projectUrl = ProjectManager.getProjectRoot().fullPath,
@@ -434,7 +511,7 @@ define( function( require, exports, module ) {
 				if (changedFiles === null) {
 					changedFiles = {};
 				}
-				if (serverInfo !== null && serverInfo.uploadOnSave) {
+				if ( !serverInfo && serverInfo !== null && serverInfo.uploadOnSave) {
 					uploadItem(path, path.replace(projectUrl, ''));
 					return;
 				}
@@ -462,7 +539,7 @@ define( function( require, exports, module ) {
 
 			});
 
-		$projectManager.on('projectOpen', function(prj) {
+		ProjectManager.on('projectOpen', function(prj) {
 			loadSettings(function() {
 				
 			});
@@ -508,6 +585,9 @@ define( function( require, exports, module ) {
 				}
 			});
 		})
+		.on('click', '.btn-server-browse', function() {
+			serverBrowser();
+		})
 		.on('click', '.btn-upload-all', function () {
 			uploadAllItems();
 		})
@@ -515,7 +595,7 @@ define( function( require, exports, module ) {
 			skipAllItems();
 		})
 		.on('click', '.btn-backup-all', function () {
-			setUpDownLoadFolder();
+			setUpDownLoadFolder(downloadAllItems);
 		})
 		.on('click', '.status-stab', function () {
 			viewLog();
@@ -546,7 +626,7 @@ define( function( require, exports, module ) {
 				if (ok) {
 					settingsDialog.updateStatus(Strings.TEST_CONNECTION_SUCCESS);
 				} else {
-					settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED);
+					settingsDialog.updateStatus(Strings.TEST_CONNECTION_FAILED + '<span class="sftp-conn-error">' + msg + '</span>');
 					status.log('Error', msg);
 				}
 			})

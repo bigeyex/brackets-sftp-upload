@@ -1,16 +1,35 @@
 brackets-sftp-upload
 ====================
 
+## THIS IS A Personal Development Fork ##
+
+Extension Home: https://github.com/bigeyex/brackets-sftp-upload
+
+### Improvements made ###
+
+* Multiple server settings per project
+* Backup changed files
+* Download files - FTP Walk (All files on FTP)
+* Download file - Local Walk (Only files that exists locally)
+* Improved Status Bar
+* Log dialog
+
+====================
+
+
 SFTP/FTP upload plugin for brackets
 
 ## Features ##
 
 * Keep track of changed files in your project
 * Upload panel - you have total control over which to upload and which to skip
-* Server settings for each project
+* Backup files before uploading (folder base per server and date folder for backup, both editable)
+* Download files from ftp (FTP Walk - everything from ftp, Local Walk - Only files existed locally
+* Multiple server settings for each project
 * Store server settings in the brackets system preference file, not the root folder of your projects, so no worry about uploading your credentials to your git repo.
 * Right click menu command in your project panel, upload any specific file or folder you want.  
-* Also a good sample code to learn how brackets works with node.
+* Also a good sample code to learn how brackets works with node. (I can atest to that! =) 
+* Log Viewer Dialog - View the details of each upload/download made
 
 ## Getting Started ##
 
@@ -25,6 +44,8 @@ SFTP/FTP upload plugin for brackets
     * (Ctrl-Alt-U / Cmd-Alt-U) to upload the current opening file;
     * (Ctrl-Shift-U / Cmd-Shift-U) to upload all changed files;
     * (Ctrl-Alt-Shift-U / Cmd-Alt-Shift-U) to open up Upload panel.
+	* (Ctrl-Alt-D / Cmd-Alt-D ) to create backup for changed files.
+	* (Ctrl-Alv-V / Cmd-Alt-V ) to view logs.
     
 ## Notes for translators ##
 

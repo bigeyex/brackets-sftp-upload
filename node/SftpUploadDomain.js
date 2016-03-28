@@ -167,7 +167,26 @@
                             }
                         });
                     }
-                    if ( job.type !== undefined && job.type === 'download' ) // Download files
+                    
+					
+					if (job.type !== undefined && job.type === 'list') {
+						clog("SFTP Listing ", fullRemotePath);
+						self.sftpClient.ls(fullRemotePath, function(err, res) {
+							clog("SFTP Listed:", res);
+							if ( typeof job.callback === 'function' ) {
+								//setTimeout(function(){
+									job.callback.call(job.callback, err, res);	
+								//}, 50);
+							}
+							else {
+								_domainManager.emitEvent("sftpUpload", "listed", [fullRemotePath, res]);
+							}
+							self.run();
+							
+							//_domainManager.emitEvent()
+						});
+					}
+                    else if ( job.type !== undefined && job.type === 'download' ) // Download files
                     {
                         _domainManager.emitEvent("sftpUpload", "downloading", [fullRemotePath, job.localPath]);
                         // Creates local diretory of backup
@@ -192,8 +211,19 @@
                     else if ( job.type === 'test-connection' ) {
                         self.sftpClient.sftp(function(err, sftp) {
                             var isOk = err === undefined || err === null || err === false;
-                            _domainManager.emitEvent("sftpUpload", "connection-tested", [isOk, ""]);
-                            self.sftpClient.close();
+                            _domainManager.emitEvent("sftpUpload", "connection-tested", [isOk, !isOk ? (err.code +' at '+ err.level ) : '' ]);
+							try {
+								if (self.sftpClient !== undefined && self.sftpClient !== null ) {
+									self.sftpClient.close();
+								}
+							}
+							catch(erro) {
+								
+							}
+							finally
+							{
+								self.run();	
+							}
                         });
                     }
                     else {
@@ -259,15 +289,33 @@
                         self.run();
                     });
                     
-                    if ( job.type !== undefined && job.type === 'download' ) // Download files
+					if (job.type !== undefined && job.type === 'list') {
+						clog("FTP Listing ", fullRemotePath);
+						self.ftpClient.ls(fullRemotePath, function(err, res) {
+							
+							if ( typeof job.callback === 'function' ) {
+								//setTimeout(function(){
+									job.callback.call(job.callback, err, res);	
+								//}, 50);
+							}
+							else {
+								_domainManager.emitEvent("sftpUpload", "listed", [fullRemotePath, res]);
+							}
+							self.run();
+							
+							//_domainManager.emitEvent()
+						});
+					}
+                    else if ( job.type !== undefined && job.type === 'download' ) // Download files
                     {
+						clog("Downloading " + fullRemotePath + " to " + job.localPath);
                         _domainManager.emitEvent("sftpUpload", "downloading", [fullRemotePath, job.localPath]);
 
                         _ftp_downloadFile(fullRemotePath, job.localPath, function() {
                             self.run();
                         });
-                    }
-                    else if ( job.type === 'test-connection' ) {
+                    }// end Download Files
+                    else if ( job.type === 'test-connection' ) { 
                         self.ftpClient.raw.stat(function(err, data) {
 							clog('ftp test-connection', {
 								err: err,
@@ -281,7 +329,7 @@
                             }
                             self.run();
                         });
-                    }
+                    }// end Test Connection
                     else // Do Upload
                     {
                         fs.stat(job.localPath, function(err, stats){
@@ -346,10 +394,15 @@
             }
         };
         		
-        self.add = function(localPath, remotePath, config, jobType){
-			remotePath = remotePath.replace(/\\/g, "/");
-			localPath = localPath.replace(/\\/g, "/");
-            self.jobQueue.push({localPath: localPath, remotePath: remotePath, config: config, type: jobType});
+		self.list = function(remotePath, config, callback) {
+			self.add('', remotePath, config, 'list', callback);
+		};
+		
+        self.add = function(localPath, remotePath, config, jobType, callback){
+			remotePath = remotePath.replace(/\\/g, "/").replace(/\/+/g, "/");
+			localPath = localPath.replace(/\\/g, "/").replace(/\/+/g, "/");
+			clog(self.isRunning + " - Add Job", {type: jobType, local: localPath, remote: remotePath})
+            self.jobQueue.push({localPath: localPath, remotePath: remotePath, config: config, type: jobType, callback: callback || false});
             if(!self.isRunning){
                 self.run();
             }
@@ -366,7 +419,7 @@
 				if ( relativeRemotePath.indexOf('.DS_Store') > 0 ) {
 					return next();
 				}
-                self.add(nodepath.join(root, stats.name), nodepath.join(relativeRemotePath, stats.name), config);
+                self.add(nodepath.join(root, stats.name), nodepath.join(relativeRemotePath, stats.name), config, 'upload');
                 
 				files_added = files_added +1;
 				tmp_count = tmp_count + 1;
@@ -381,7 +434,35 @@
 			});
         };
         
-        self._getFullRemotePath = function(remotePath){
+        self.downDirectory = function(remotePath, localPath, downPath, config){
+            var walker = walk.walk(localPath, {followLinks:false, filters:[".DS_Store"]}),
+				files_added = 0,
+				trigger_on = 1,
+				tmp_count = 0;
+			
+            walker.on("file", function(root, stats, next){
+                var relativeRemotePath = nodepath.join(remotePath, root.replace(localPath, '')),
+					fullDownloadPath = nodepath.join(downPath, root.replace(localPath, '')) + '/ '+ stats.name;
+				
+				if ( relativeRemotePath.indexOf('.DS_Store') > 0 ) {
+					return next();
+				}
+                self.add(fullDownloadPath, nodepath.join(relativeRemotePath, stats.name), config, 'download');
+                
+				files_added = files_added +1;
+				tmp_count = tmp_count + 1;
+				if ( tmp_count > trigger_on ) {
+					_domainManager.emitEvent("sftpUpload", "queued", [files_added]);
+					tmp_count = 0;
+				}
+				next();
+            });
+			walker.on('end', function() {
+				_domainManager.emitEvent("sftpUpload", "queuedend", [files_added]);
+			});		
+        };
+        
+		self._getFullRemotePath = function(remotePath){
             var fullRemotePath;
             if(/\/$/.test(self.config.serverPath)){   // if the user forget to add '/' in the path config, help with it.
                 fullRemotePath = self.config.serverPath+remotePath;
@@ -398,13 +479,19 @@
     function cmdUpload(localPath, remotePath, config){
         if(config === undefined) {config=null;}
 		clog('Start Upload: ' + localPath);
-        sftpJobs.add(localPath, remotePath, config);
+        sftpJobs.add(localPath, remotePath, config, 'upload');
     }
+	
+	function cmdList(remotePath, config) {
+        if(config === undefined) {config=null;}
+		clog('Start Listing: ' + remotePath);
+        sftpJobs.list(remotePath, config, false);
+	}
 
     function cmdUploadAll(filelist, config){
         if(config === undefined) {config=null;}
         for(var i in filelist){
-            sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config);
+            sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config, 'upload');
         }
     }
     
@@ -413,6 +500,39 @@
         for(var i in filelist){
             sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config, 'download');
         }
+    }
+	
+    function cmdDownload(remotePath, localPath, walkPath, config){
+        if(config === undefined) {config=null;}
+		if ( ! walkPath || walkPath === null ) {
+			sftpJobs.add(localPath, remotePath, config, 'download');
+		}
+		// Walk on local path
+		else if ( typeof walkPath === 'string' ) {
+			clog('Downloading Folder: ', remotePath + ' to ' + localPath);
+			sftpJobs.downDirectory(remotePath, walkPath, localPath, config);
+		}
+		else if ( walkPath === true ) {
+			var files_added = 0;
+			var list = function(path) {
+				sftpJobs.list(path, config, function(err, files) {
+					files_added = files_added + files.length;
+					_domainManager.emitEvent("sftpUpload", "queued", [files_added]);
+					files.forEach(function(file) {
+						if ( file.type == 0 ) { // file
+							var downPath = localPath + '/' + path + file.name,
+								rpath = path+ file.name;
+							sftpJobs.add(downPath, rpath , config, 'download');
+						}
+						else {
+							list(file.name);
+						}
+					});
+				});
+			};
+			list(remotePath);
+		}
+            
     }
 	
 	function cmdTestConnection(config) {
@@ -446,7 +566,7 @@
                 type: "string",
                 description: "(relative) path or filename of the destination"},
              {name: "config", // parameters
-                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
                 description: "(optional) server configuration."}],
             []
         );
@@ -461,7 +581,7 @@
                 type: "[{localPath:string, remotePath:string},...]",
                 description: "a list of files to be uploaded"},
              {name: "config", // parameters
-                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
                 description: "(optional) server configuration."}],
             []
         );
@@ -473,7 +593,7 @@
             false,          // this command is synchronous in Node
             "Test the connection with the server setup",
             [{name: "config", // parameters
-                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
                 description: "(optional) server configuration."}],
             []
         );
@@ -488,7 +608,28 @@
                 type: "[{localPath:string, remotePath:string},...]",
                 description: "a list of files to be downloaded"},
              {name: "config", // parameters
-                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                description: "(optional) server configuration."}],
+            []
+        );
+		
+        domainManager.registerCommand(
+            "sftpUpload",       // domain name
+            "download",    // command name
+            cmdDownload,   // command handler function
+            false,          // this command is synchronous in Node
+            "Download a list of files in a batch",
+            [{name: "remotePath", // parameters
+                type: "string",
+                description: "remote path to download"},
+			 {name: "localPath", 
+                type: "string",
+                description: "remote path to download it to"},
+			 {name: "walkPath", // parameters
+                type: "object",
+                description: "null/false for files, local path for walk on local" },
+             {name: "config", 
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
                 description: "(optional) server configuration."}],
             []
         );
@@ -506,11 +647,25 @@
                 type: "string",
                 description: "(relative) path or filename of the destination"},
              {name: "config", // parameters
-                type: "{host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
                 description: "(optional) server configuration."}],
             []
         );
         
+        domainManager.registerCommand(
+            "sftpUpload",       // domain name
+            "list",    // command name
+            cmdList,   // command handler function
+            false,          // this command is synchronous in Node
+            "List files on a directory",
+            [{name: "remotePath", // parameters
+                type: "string",
+                description: "remote path to download"},
+             {name: "config", 
+                type: "{name: string, host: string, username: string, rsaPath: string, password: string, port: string, serverPath: string, method: string, backupPath: string}",
+                description: "(optional) server configuration."}],
+            []
+        );
         
         domainManager.registerEvent(
             "sftpUpload",

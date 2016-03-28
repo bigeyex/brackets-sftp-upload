@@ -2,7 +2,6 @@
     color: #555;
     cursor: pointer;
 }
-
 .brackets-sftp-upload table {
 	width: 100%;
 	position: relative;
@@ -261,6 +260,16 @@ button.btn-server-setup > b {
 	display: inline-block;
 	margin-left: 10px;
 }
+
+.sftp-conn-error {
+	color: #852222;
+	display: block;
+	background: #090909;
+	border-radius: 4px;
+	font-size: 1.3em;
+	padding: 4px 6px;
+}
+
 
 .sftp-clearfix:after { 
    content: " ";
