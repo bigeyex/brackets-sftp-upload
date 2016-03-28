@@ -5,6 +5,8 @@ brackets-sftp-upload
 
 Extension Home: https://github.com/bigeyex/brackets-sftp-upload
 
+Those improvements are eventually going to be merged into the extension
+
 ### Improvements made ###
 
 * Multiple server settings per project
