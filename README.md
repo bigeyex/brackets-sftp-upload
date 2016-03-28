@@ -13,6 +13,7 @@ Those improvements are eventually going to be merged into the extension
 * Backup changed files
 * Download files - FTP Walk (All files on FTP)
 * Download file - Local Walk (Only files that exists locally)
+* Test Connection Button & Show Connection Error
 * Improved Status Bar
 * Log dialog
 
