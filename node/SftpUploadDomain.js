@@ -1,3 +1,4 @@
+/*jshint node: true*/
 (function(){
     
     var SftpClient = require('scp2'),
@@ -5,7 +6,7 @@
         walk = require('walk'),
         nodepath = require('path'),
         fs = require('fs'),
-	mkdirp = require('mkdirp'),
+		mkdirp = require('mkdirp'),
         _domainManager;
     
     JSFtp = require('jsftp-mkdirp')(JSFtp); 
@@ -103,9 +104,11 @@
                 _make_dir();
             }
         };
+		
         self.run = function(){
             var job;
             if(job=self.jobQueue.shift()){
+				
                 self.isRunning = true;
                 // if the config has changed, restart engine
                 if(job.config!==null && !(self.config.equals(job.config))){
@@ -127,6 +130,7 @@
                 var fullRemotePath = self._getFullRemotePath(job.remotePath),
 					remotePath = job.remotePath,
                     path_only = job.localPath.replace(/[^\/]*$/, '').replace(/\/$/, '');	
+				
 				
                 // do SFTP upload                
                 if(self.config.method == 'sftp'){
@@ -179,7 +183,7 @@
 								//}, 50);
 							}
 							else {
-								_domainManager.emitEvent("sftpUpload", "listed", [fullRemotePath, res]);
+								_domainManager.emitEvent("sftpUpload", "listed", [job.remotePath, res]);
 							}
 							self.run();
 							
@@ -240,7 +244,7 @@
                                         self.run();
                                     }
                                     else{
-                                        _domainManager.emitEvent("sftpUpload", "uploaded", [remotePath]);
+                                        _domainManager.emitEvent("sftpUpload", "uploaded", [fullRemotePath, job.localPath]);
                                         self.run();
                                     }
                                 });
@@ -253,7 +257,7 @@
                                         self.run();
                                     }
                                     else{
-                                        _domainManager.emitEvent("sftpUpload", "uploaded", [remotePath]);
+                                        _domainManager.emitEvent("sftpUpload", "uploaded", [fullRemotePath, job.localPath]);
                                         self.run();
                                     }
                                 });
@@ -299,7 +303,7 @@
 								//}, 50);
 							}
 							else {
-								_domainManager.emitEvent("sftpUpload", "listed", [fullRemotePath, res]);
+								_domainManager.emitEvent("sftpUpload", "listed", [job.remotePath, res]);
 							}
 							self.run();
 							
@@ -352,7 +356,7 @@
                                                 self.run();
                                             }
                                             else{
-                                                _domainManager.emitEvent("sftpUpload", "uploaded", [remotePath]);
+                                                _domainManager.emitEvent("sftpUpload", "uploaded", [fullRemotePath, job.localPath]);
                                                 self.run();
                                             }
                                         });
@@ -367,7 +371,7 @@
                                         self.run();
                                     }
                                     else{
-                                        _domainManager.emitEvent("sftpUpload", "uploaded", [remotePath]);
+                                        _domainManager.emitEvent("sftpUpload", "uploaded", [fullRemotePath, job.localPath]);
                                         self.run();
                                     }
                                 });
@@ -401,7 +405,7 @@
         self.add = function(localPath, remotePath, config, jobType, callback){
 			remotePath = remotePath.replace(/\\/g, "/").replace(/\/+/g, "/");
 			localPath = localPath.replace(/\\/g, "/").replace(/\/+/g, "/");
-			clog(self.isRunning + " - Add Job", {type: jobType, local: localPath, remote: remotePath})
+			clog(self.isRunning + " - Add Job", {type: jobType, local: localPath, remote: remotePath});
             self.jobQueue.push({localPath: localPath, remotePath: remotePath, config: config, type: jobType, callback: callback || false});
             if(!self.isRunning){
                 self.run();
@@ -470,6 +474,12 @@
             else{
                 fullRemotePath = self.config.serverPath+'/'+remotePath;
             }
+			
+			// Replaces any duplicated '//'
+			fullRemotePath.replace(/(\/)+/g, "/");
+			// Replaces any duplicated 
+			var re = new RegExp("("+self.config.serverPath+")+","g");
+			fullRemotePath = fullRemotePath.replace(re, self.config.serverPath); 
             return fullRemotePath;
         };
     }
@@ -519,7 +529,7 @@
 					files_added = files_added + files.length;
 					_domainManager.emitEvent("sftpUpload", "queued", [files_added]);
 					files.forEach(function(file) {
-						if ( file.type == 0 ) { // file
+						if ( file.type.toString() === "0" ) { // file
 							var downPath = localPath + '/' + path + file.name,
 								rpath = path+ file.name;
 							sftpJobs.add(downPath, rpath , config, 'download');
@@ -534,6 +544,7 @@
 		}
             
     }
+	
 	
 	function cmdTestConnection(config) {
 		if(config === undefined) {config=null;}
@@ -669,6 +680,20 @@
         
         domainManager.registerEvent(
             "sftpUpload",
+            "listed",
+            [{
+                name: "path",
+                type: "string",
+                description: "the absolute local path of the directory listed"
+            },{
+                name: "files",
+                type: "array",
+                description: "the files of the directory listed"
+            }]
+        );
+		
+        domainManager.registerEvent(
+            "sftpUpload",
             "uploading",
             [{
                 name: "path",
@@ -711,9 +736,14 @@
             "sftpUpload",
             "uploaded",
             [{
-                name: "path",
+                name: "remotePath",
                 type: "string",
-                description: "the absolute local path of the file that is uploaded"
+                description: "the absolute remote path of uploaded filed"
+            },
+			{
+                name: "localPath",
+                type: "string",
+                description: "the absolute local path of the uploaded path"
             }]
         );
         

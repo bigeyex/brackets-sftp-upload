@@ -63,5 +63,7 @@ define( {
     
     // Log Viewer
 	LOG_VIEWER_TITLE: 'Log Viewer',
-	LOG_VIEWER_EMPTY: 'No log to show.'
+	LOG_VIEWER_EMPTY: 'No log to show.',
+	
+	BROWSER_PANEL_TITLE: 'SFTP Browser'
 } );

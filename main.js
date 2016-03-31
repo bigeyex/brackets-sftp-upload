@@ -6,25 +6,25 @@
  * @author Mikael Jorhult
  * @license http://mikaeljorhult.mit-license.org MIT
  */
-define( function( require, exports, module ) {
-    'use strict';
+define(function (require, exports, module) {
+	'use strict';
 
-    // Get dependencies.
-    var Async = brackets.getModule( 'utils/Async' ),
-        Menus = brackets.getModule( 'command/Menus' ),
-        CommandManager = brackets.getModule( 'command/CommandManager' ),
-        Commands = brackets.getModule( 'command/Commands' ),
-        PreferencesManager = brackets.getModule( 'preferences/PreferencesManager' ),
-        ProjectManager = brackets.getModule( 'project/ProjectManager' ),
-        EditorManager = brackets.getModule( 'editor/EditorManager' ),
-        DocumentManager = brackets.getModule( 'document/DocumentManager' ),
-        WorkspaceManager = brackets.getModule( 'view/WorkspaceManager' ),
-        Resizer = brackets.getModule( 'utils/Resizer' ),
-        AppInit = brackets.getModule( 'utils/AppInit' ),
-        FileUtils = brackets.getModule( 'file/FileUtils' ),
-        FileSystem = brackets.getModule( 'filesystem/FileSystem' ),
-        ExtensionUtils = brackets.getModule( 'utils/ExtensionUtils' ),
-        NodeDomain = brackets.getModule("utils/NodeDomain"),
+	// Get dependencies.
+	var Async = brackets.getModule('utils/Async'),
+		Menus = brackets.getModule('command/Menus'),
+		CommandManager = brackets.getModule('command/CommandManager'),
+		Commands = brackets.getModule('command/Commands'),
+		PreferencesManager = brackets.getModule('preferences/PreferencesManager'),
+		ProjectManager = brackets.getModule('project/ProjectManager'),
+		EditorManager = brackets.getModule('editor/EditorManager'),
+		DocumentManager = brackets.getModule('document/DocumentManager'),
+		WorkspaceManager = brackets.getModule('view/WorkspaceManager'),
+		Resizer = brackets.getModule('utils/Resizer'),
+		AppInit = brackets.getModule('utils/AppInit'),
+		FileUtils = brackets.getModule('file/FileUtils'),
+		FileSystem = brackets.getModule('filesystem/FileSystem'),
+		ExtensionUtils = brackets.getModule('utils/ExtensionUtils'),
+		NodeDomain = brackets.getModule("utils/NodeDomain"),
 
 		// Extension basics.
 		COMMAND_ID = 'bigeyex.bracketsSFTPUpload.enable',
@@ -41,18 +41,21 @@ define( function( require, exports, module ) {
 		backupDialog = require('modules/BackupFilesDialog'),
 		logsDialog = require('modules/LogViewerDialog'),
 
-        // Preferences.
-        preferences = PreferencesManager.getExtensionPrefs( 'bigeyex.bracketsSFTPUpload' ),
+		// Preferences.
+		preferences = PreferencesManager.getExtensionPrefs('bigeyex.bracketsSFTPUpload'),
 
 		// Mustache templates.
 		todoPanelTemplate = require('text!html/panel.html'),
 		todoRowTemplate = require('text!html/row.html'),
+		browserPanelTemplate = require('text!html/browser-panel.html'),
 
 		// Setup extension.
 		serverInfo, //sftp username/password etc;
 		$todoPanel,
 		projectUrl,
 		$todoIcon = $('<a href="#" title="' + Strings.EXTENSION_NAME + '" id="brackets-sftp-upload-icon"></a>'),
+		$statusIndicator,
+		$browserPanel,
 		
 		// Get view menu.
 		menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU),
@@ -81,16 +84,16 @@ define( function( require, exports, module ) {
 				this.log('Error', msg);
 			},
 
-			downloaded: function (msg) {
+			downloaded: function (remoteFile, localFile) {
 				this.itens_ok = this.itens_ok + 1;
 				this.itens_completed = this.itens_completed + 1;
-				this.log('Downloaded', msg);
+				this.log('Downloaded', localFile + ' --> ' + remoteFile);
 			},
 
-			uploaded: function (msg) {
+			uploaded: function (remoteFile, localFile) {
 				this.itens_ok = this.itens_ok + 1;
 				this.itens_completed = this.itens_completed + 1;
-				this.log('Uploaded', msg);
+				this.log('Uploaded', localFile + ' --> ' + remoteFile);
 			},
 
 			log: function (type, text) {
@@ -113,12 +116,12 @@ define( function( require, exports, module ) {
 
 		};
 
-    // Define preferences.
-    preferences.definePreference( 'enabled', 'boolean', false );
+	// Define preferences.
+	preferences.definePreference('enabled', 'boolean', false);
 
-    // Get Node module domain
-    var _domainPath = ExtensionUtils.getModulePath(module, "node/SftpUploadDomain");
-    var _nodeDomain = new NodeDomain("sftpUpload", _domainPath);
+	// Get Node module domain
+	var _domainPath = ExtensionUtils.getModulePath(module, "node/SftpUploadDomain");
+	var _nodeDomain = new NodeDomain("sftpUpload", _domainPath);
 
 	// Register extension.
 	CommandManager.register(Strings.EXTENSION_NAME, COMMAND_ID, togglePanel);
@@ -148,8 +151,8 @@ define( function( require, exports, module ) {
 		contextMenu.addMenuItem(COMMAND_ID_DOWNLOAD_FTP_WALK);
 	}
 
-    // Load stylesheet.
-    ExtensionUtils.loadStyleSheet( module, 'todo.css' );
+	// Load stylesheet.
+	ExtensionUtils.loadStyleSheet(module, 'todo.css');
 
 	/**
 	 * Get saved serverInfo 
@@ -206,12 +209,11 @@ define( function( require, exports, module ) {
 		
 		setUpDownLoadFolder(function(folder) {
 			if ( item.isFile ) {
-				downloadFile(remotePath, folder + FileUtils.getBaseName(item.fullPath), false);	
+				downloadFile(remotePath, folder +'/'+ FileUtils.getBaseName(item.fullPath), false, true);	
 			}
 			else {
-				downloadFile(remotePath, folder, item.fullPath);
+				downloadFile(remotePath, folder, item.fullPath, false);
 			}
-			
 		});
 	}
 	
@@ -225,14 +227,20 @@ define( function( require, exports, module ) {
 		
 		setUpDownLoadFolder(function(folder) {
 			if ( item.isFile ) {
-				downloadFile(remotePath, folder + FileUtils.getBaseName(item.fullPath), false);	
+				downloadFile(remotePath, folder +'/'+ FileUtils.getBaseName(item.fullPath), false, true);	
 			}
 			else {
-				downloadFile(remotePath, folder, true);
+				downloadFile(remotePath, folder, true, false);
 			}
 		});
 	}
 	
+	/**
+	* Resize Browser Panel
+	*/
+	function resizeBrowserPanel() {
+		$browserPanel.height(($("#editor-holder").height() - 24) + 'px');
+	}
 	
 	/**
 	 * Initialize extension.
@@ -243,9 +251,10 @@ define( function( require, exports, module ) {
 				// Show panel.
 				Resizer.show($todoPanel);
 			});
-
+			
 			// Set active class on icon.
 			$todoIcon.addClass('active');
+			enableButtons();
 		} else {
 			// Hide panel.
 			Resizer.hide($todoPanel);
@@ -401,7 +410,7 @@ define( function( require, exports, module ) {
 	}
 	
 	// Get the full path of the backup folder
-	function _getBackupFullPath(serverInfo, folder) {
+	function _getBackupFullPath(serverInfo, folder, isFile) {
 		var projectUrl = ProjectManager.getProjectRoot().fullPath,
 			basePath;
 
@@ -415,9 +424,9 @@ define( function( require, exports, module ) {
 		}
 		
 		if (serverInfo.backupPath.indexOf(":") > -1) { // full dir
-			basePath = serverInfo.backupPath + folder + "/";
+			basePath = serverInfo.backupPath + folder + (isFile !== true ? "/" : '');
 		} else {
-			basePath = projectUrl + serverInfo.backupPath + "/" + folder + "/";
+			basePath = projectUrl + serverInfo.backupPath + "/" + folder + (isFile !== true ? "/" : '');
 		}
 		// replace any '//' to '/'
 		basePath = basePath.replace(/\/+/g, "/");
@@ -428,11 +437,12 @@ define( function( require, exports, module ) {
 		setUpDownLoadFolder(downloadAllItems);
 	}
 	
-	function downloadFile(remotePath, localPath, walkPath) {
+	function downloadFile(remotePath, localPath, walkPath, isFile) {
 		
 		var config = _getServerInfo(),
-			basePath = _getBackupFullPath(config, localPath);
+			basePath = _getBackupFullPath(config, localPath, isFile);
 
+		status.is_downloading = true;
 		disableButtons();
 		
 		_nodeDomain.exec('download', remotePath, basePath, walkPath, config)
@@ -444,14 +454,53 @@ define( function( require, exports, module ) {
 			});
 	}
 	
-	function serverBrowser(remotePath) {
+	function listRemoteDir(remotePath) {
 		var config = _getServerInfo();
 		status.status('Listing...');
+		$browserPanel.show();
+		resizeBrowserPanel();
 		_nodeDomain.exec('list', remotePath || '', config)
 			.fail(function (err) {
 				status.log('Error', err);
 			});
+	}
+	
+	function startServerBrowser() {
+		var config = _getServerInfo();
+		$("div.sftp-update-browser-holder > span", $browserPanel).html(config.serverPath);
+		$("div.sftp-update-browser-holder > ul", $browserPanel).empty();
+		listRemoteDir();
+	}
 		
+	function showListedItems(err, path, files) {
+		var html = '';
+		files.sort(function(a,b) {
+			if ( a.type == 1 && b.type !== 1 ) return -1;
+			else if ( a.type === 0 && b.type === 1 ) return 1;
+			else {
+				if(a.name < b.name) return -1;
+				else if(a.name > b.name) return 1;	
+				else return 0;
+			}		
+		}).forEach(function(file) {
+			var css = '';
+			if ( file.type == 1 ) { // folder
+				css += 'folder';
+			}
+			html += '<li class="'+css+'" data-path="'+path+file.name+'"><label>'+file.name+'</label></li>';
+		});
+		
+		var $mainUl = $(".sftp-update-browser-holder > ul", $browserPanel);
+		
+		if ( $mainUl.is(':empty') ) {
+			$mainUl.append(html);
+		}
+		else {
+			var $li = $('li[data-path="'+path+'"]', $mainUl);
+			if ( $li ) {
+				$li.append('<ul>'+html+'</ul');
+			}
+		}
 	}
 	
 	// Test Server Connection
@@ -463,25 +512,25 @@ define( function( require, exports, module ) {
 			});
 	}
 
-    // Disable all buttons in the panel
-    function disableButtons() {
-        $('#brackets-sftp-upload button').attr('disabled', 'disabled');
-    }
+	// Disable all buttons in the panel
+	function disableButtons() {
+		$('#brackets-sftp-upload button').attr('disabled', 'disabled');
+	}
 
-    // Enable all buttons in the panel
-    function enableButtons() {
-        $('#brackets-sftp-upload button').removeAttr('disabled');
-    }
+	// Enable all buttons in the panel
+	function enableButtons() {
+		$('#brackets-sftp-upload button').removeAttr('disabled');
+	}
 
-    // Remove item from the changed files list
-    function skipItem(path) {
-        var changedFiles = dataStorage.get('changed_files') || {};
-        $('#brackets-sftp-upload tr[x-file="'+path+'"]').remove();
-        if(path in changedFiles){
-            delete changedFiles[path];
-            dataStorage.set('changed_files', changedFiles);
-        }
-    }
+	// Remove item from the changed files list
+	function skipItem(path) {
+		var changedFiles = dataStorage.get('changed_files') || {};
+		$('#brackets-sftp-upload tr[x-file="' + path + '"]').remove();
+		if (path in changedFiles) {
+			delete changedFiles[path];
+			dataStorage.set('changed_files', changedFiles);
+		}
+	}
 
 	// Remove all itens from the changed files list
 	function skipAllItems() {
@@ -489,7 +538,7 @@ define( function( require, exports, module ) {
 		dataStorage.set('changed_files', {});
 	}
 
-	// Update Panel Status
+	// Upda₢te Panel Status
 	function updateStatus(status) {
 		$('#brackets-sftp-upload .status-stab').text(status);
 	}
@@ -563,15 +612,36 @@ define( function( require, exports, module ) {
 		WorkspaceManager.createBottomPanel('bigeyex.bracketsSFTPUpload.panel', $(panelHTML), 100);
 		$todoPanel = $('#brackets-sftp-upload');
 
-        // Close panel when close button is clicked.
-        $todoPanel
-            .on( 'click', '.close', function() {
-                enablePanel( false );
-            } );
+		// Close panel when close button is clicked.
+		$todoPanel
+			.on('click', '.close', function () {
+				enablePanel(false);
+			});
 
 		// Setup listeners.
 		registerListeners();
 
+		$browserPanel = $(Mustache.render(browserPanelTemplate, {
+			Strings: Strings
+		}));
+		$("#main-toolbar").before($browserPanel);
+		
+		$browserPanel.on('click', '.close', function () {
+			$browserPanel.hide();
+		})
+		.on('click', 'li.folder', function(evt) {
+			evt.stopPropagation();
+			var $li = $(this);
+			$li.toggleClass("open");
+			if ( $li.hasClass("open") ) {
+				var path = $li.data("path");
+				listRemoteDir(path);
+			}
+			else {
+				$li.children('ul').remove();
+			}
+		});
+		
 		// Add listener for toolbar icon..
 		$todoIcon.click(function () {
 			CommandManager.execute(COMMAND_ID);
@@ -586,7 +656,7 @@ define( function( require, exports, module ) {
 			});
 		})
 		.on('click', '.btn-server-browse', function() {
-			serverBrowser();
+			startServerBrowser();
 		})
 		.on('click', '.btn-upload-all', function () {
 			uploadAllItems();
@@ -612,14 +682,13 @@ define( function( require, exports, module ) {
 			.on('downloading', function (err, remoteFile, localFile) {
 				updateStatus('Downloading: ' + remoteFile + status.status());
 			})
-			.on('uploaded', function (err, msg) {
-				var projectUrl = ProjectManager.getProjectRoot().fullPath;
-				skipItem(projectUrl + msg);
-				status.uploaded(msg);
-				updateStatus('Finished: ' + msg + status.status());
+			.on('uploaded', function (err, remoteFile, localFile) {
+				skipItem(localFile);
+				status.uploaded(remoteFile, localFile);
+				updateStatus('Finished: ' + remoteFile + status.status());
 			})
 			.on('downloaded', function (err, remoteFile, localFile) {
-				status.downloaded(remoteFile);
+				status.downloaded(remoteFile, localFile);
 				updateStatus('Downloaded: ' + remoteFile);
 			})
 			.on('connection-tested', function (err, ok, msg) {
@@ -633,10 +702,13 @@ define( function( require, exports, module ) {
 			.on('queued', function(err, num) {
 				status.itens_length = num;
 			})
-			.on('queued', function(err, num) {
+			.on('queuedend', function(err, num) {
 				status.itens_length = num;
 				status.queuing = false;
 				status.queuing_fisined = true;
+			})
+			.on('listed', function(err, path, list) {
+				showListedItems(err, path, list);
 			})
 			.on('error', function (err, msg) {
 				status.error(msg);
@@ -646,10 +718,11 @@ define( function( require, exports, module ) {
 				showUploadingIconStatus(false);
 				if (status.is_downloading) {
 					updateStatus('Backup Complete! ' + status.status());
-					enableButtons();
 				} else {
 					updateStatus('Upload Complete! ' + status.status());
 				}
+				status.is_downloading = false;
+				enableButtons();
 			});
 	});
 });

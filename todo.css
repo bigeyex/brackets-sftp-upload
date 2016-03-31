@@ -278,3 +278,47 @@ button.btn-server-setup > b {
    clear: both;
    *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML += '<div class="ie7-clear"></div>' );
 }
+
+#sftp-update-browser {
+	position: absolute;
+	right: 29px;
+	top: 0;
+	z-index: 999;
+	width: 250px;
+	background: #2c2c2c;
+	min-height: 450px;
+	padding: 6px;
+	display: none;
+	box-sizing: border-box;
+	overflow: auto;
+}
+#sftp-update-browser * { box-sizing: border-box; }
+
+#sftp-update-browser a.close { position: absolute; top: 3px; right: 3px;}
+
+#sftp-update-browser > .header button, 
+#sftp-update-browser > .header label {
+	display: inline-block; }
+
+
+#sftp-update-browser ul { list-style-type: none; padding: 0; margin: 0; }
+
+#sftp-update-browser ul li.folder > label:before {
+	content: " + ";
+	padding: 4px;
+	margin-right: 4px;
+}
+
+#sftp-update-browser ul li.folder.open > label:before {
+	content: " - ";
+	padding: 4px;
+	margin-right: 4px;
+}
+
+#sftp-update-browser ul li:not(.folder) > label {
+	margin-left: 10px;
+}
+
+#sftp-update-browser ul li.folder > ul {
+	margin-left: 10px;
+}
