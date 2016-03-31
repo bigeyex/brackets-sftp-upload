@@ -560,7 +560,7 @@ define(function (require, exports, module) {
 				if (changedFiles === null) {
 					changedFiles = {};
 				}
-				if ( !serverInfo && serverInfo !== null && serverInfo.uploadOnSave) {
+				if ( serverInfo && serverInfo !== null && serverInfo.uploadOnSave) {
 					uploadItem(path, path.replace(projectUrl, ''));
 					return;
 				}
