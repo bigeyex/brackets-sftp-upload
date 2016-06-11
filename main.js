@@ -29,6 +29,7 @@ define( function( require, exports, module ) {
         COMMAND_ID = 'bigeyex.bracketsSFTPUpload.enable',
         COMMAND_ID_UPLOAD = 'bigeyex.bracketsSFTPUpload.upload',
         COMMAND_ID_UPLOAD_ALL = 'bigeyex.bracketsSFTPUpload.uploadAll',
+        COMMAND_ID_CLEAR_ALL = 'bigeyex.bracketsSFTPUpload.clearAll',
 
         Strings = require( 'modules/Strings' ),
         dataStorage = require( 'modules/DataStorageManager' ),
@@ -62,6 +63,7 @@ define( function( require, exports, module ) {
     CommandManager.register( Strings.EXTENSION_NAME, COMMAND_ID, togglePanel );
     CommandManager.register( Strings.UPLOAD_MENU_NAME, COMMAND_ID_UPLOAD, uploadMenuAction );
     CommandManager.register( Strings.UPLOAD_ALL, COMMAND_ID_UPLOAD_ALL, uploadAllItems );
+    CommandManager.register( Strings.CLEAR_ALL, COMMAND_ID_CLEAR_ALL, clearAllItems );
 
 
     // Add command to menu.
@@ -70,6 +72,7 @@ define( function( require, exports, module ) {
         menu.addMenuItem( COMMAND_ID, 'Ctrl-Alt-Shift-U' );
         menu.addMenuItem( COMMAND_ID_UPLOAD, 'Ctrl-Alt-U' );
         menu.addMenuItem( COMMAND_ID_UPLOAD_ALL, 'Ctrl-Shift-U' );
+        menu.addMenuItem( COMMAND_ID_CLEAR_ALL, 'Ctrl-Alt-Shift-R' );
     }
 
     if ( contextMenu !== undefined ) {
@@ -142,7 +145,7 @@ define( function( require, exports, module ) {
             });
         }
 
-        $('#sftp-upload-tbody').empty().append(Mustache.render( todoRowTemplate, {
+        $('#sftp-upload-tbody').prepend(Mustache.render( todoRowTemplate, {
                 strings: Strings,
                 files: files
         } ));
@@ -193,6 +196,11 @@ define( function( require, exports, module ) {
         });
     }
 
+    // clear files log in the panel to the server
+    function clearAllItems() {
+		$('#brackets-sftp-upload tr[x-log]').remove();
+	}
+	
     // upload all files in the panel to the server
     function uploadAllItems(){
         var serverInfo = dataStorage.get('server_info');
@@ -222,7 +230,7 @@ define( function( require, exports, module ) {
     }
 
     function skipAllItems(){
-        $('#brackets-sftp-upload tr').remove();
+        $('#brackets-sftp-upload tr[x-file]').remove();
         dataStorage.set('changed_files', {});
     }
 
@@ -230,12 +238,17 @@ define( function( require, exports, module ) {
         $('#brackets-sftp-upload .status-stab').text(status);
     }
 
+	function logItems(file, content) {
+		var timeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+		$('#sftp-upload-tbody').prepend('<tr x-log><td>' + file + '</td>' + content + '<td>' + timeNow + '</td></tr>');
+	}
+
     /**
      * Listen for save or refresh and look for todos when needed.
      */
     function registerListeners() {
-        var $documentManager = $( DocumentManager ),
-            $projectManager = $( ProjectManager );
+        var $documentManager = DocumentManager,
+            $projectManager = ProjectManager;
 
         // Listeners bound to Brackets modules.
         $documentManager
@@ -248,6 +261,13 @@ define( function( require, exports, module ) {
                 }
                 var projectUrl = ProjectManager.getProjectRoot().fullPath;
                 var serverInfo = dataStorage.get('server_info');
+				var projectComparePaths = path.substring(0, projectUrl.length);
+				
+				if(projectComparePaths !== projectUrl) {
+					logItems(path, '<td style="color: orange">Non-project file. Can\'t upload</td>');
+					return;
+				}
+				
                 if(serverInfo != null && serverInfo.uploadOnSave){
                     uploadItem(path, path.replace(projectUrl, ''));
                     return;
@@ -314,24 +334,30 @@ define( function( require, exports, module ) {
             skipAllItems();
         });
 
+        $todoPanel.on('click', '.btn-clear-all',function(){
+            clearAllItems();
+        });
+
 
         // Enable extension if loaded last time.
         if ( preferences.get( 'enabled' ) ) {
             enablePanel( true );
         }
 
-        $(_nodeDomain).on('uploading', function(err, msg){
+        _nodeDomain.on('uploading', function(err, msg){
             updateStatus('Uploading: '+msg);
         });
-        $(_nodeDomain).on('uploaded', function(err, msg){
+        _nodeDomain.on('uploaded', function(err, msg){
             var projectUrl = ProjectManager.getProjectRoot().fullPath;
             skipItem(projectUrl+msg);
             updateStatus('Finished: '+msg);
+			logItems(msg, '<td style="color:green">Finished</td>');
         });
-        $(_nodeDomain).on('error', function(err, msg){
+        _nodeDomain.on('error', function(err, msg){
             updateStatus('Error: '+msg);
+			logItems(msg, '<td style="color:red">Error</td>');
         });
-        $(_nodeDomain).on('jobCompleted', function(err, msg){
+        _nodeDomain.on('jobCompleted', function(err, msg){
             showUploadingIconStatus(false);
         });
     } );

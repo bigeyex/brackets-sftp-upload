@@ -18,6 +18,7 @@ define( {
 	SERVER_SETUP: "Server Setup",
 	UPLOAD_ALL: "Upload All",
 	SKIP_ALL: "Skip All",
+	CLEAR_ALL: "Clear Log",
 	
 	// SETTINGS DIALOG.
 	SETTINGS_DIALOG_TITLE:        "SFTP Settings",
