@@ -1,0 +1,25 @@
+{
+    "name": "bigeyex.brackets-sftp-upload",
+    "title": "SFtpUpload",
+    "description": "Upload changed files in your project to a server via SFTP(SCP)/FTP, you have total control over which to upload through the changed files panel.\nContributors: danielkratz, mhentgesarrow, dedo1911, swengmatt, M1szelek, dennistobar, zarnivoop, Antoine SARRAZIN, marioletta, elvis-pereira",
+    "homepage": "https://github.com/bigeyex/brackets-sftp-upload",
+    "keywords":["sftp","ftp","sync", "upload", "uploader"],
+    "version": "1.3.11",
+    "author": "Wang Yu <bigeyex@gmail.com> (http://www.mit.edu/~wangyu/)",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.24.0"
+    },
+    "i18n": [
+        "en", 
+        "it",
+        "de",
+        "zh",
+        "es",
+        "pl",
+        "sv",
+        "fr",
+        "et",
+        "pt"
+    ]
+}

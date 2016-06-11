@@ -1,0 +1,11 @@
+{{#files}}
+    <tr class="file" x-file="{{ path }}">
+        <td class="filename">
+            {{{ file }}}
+        </td>
+        <td width="170">
+            <button class="btn small upload-button" x-file="{{ path }}" r-file="{{ file }}">{{ strings.UPLOAD }}</button>
+            <button class="btn small skip-button" x-file="{{ path }}">{{ strings.SKIP }}</button>
+        </td>
+    </tr>
+{{/files}}

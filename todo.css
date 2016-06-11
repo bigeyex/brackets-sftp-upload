@@ -1,0 +1,205 @@
+#brackets-sftp-upload .status-stab{
+    color: #555;
+}
+
+.brackets-sftp-upload table {
+	width: 100%;
+	position: relative;
+}
+
+.brackets-sftp-upload td {
+	vertical-align: middle;
+}
+
+.brackets-sftp-upload td.filename{
+    padding-left: 20px;
+}
+
+.brackets-sftp-upload .done {
+	opacity: .5;
+}
+
+.brackets-sftp-upload .done .message {
+	text-decoration: line-through;
+}
+
+/*--- TABLE ROWS ---*/
+.brackets-sftp-upload .disclosure-triangle {
+	display: inline-block;
+	width: 18px;
+	height: 16px;
+	background-position: 8px 4px;
+}
+
+.brackets-sftp-upload .expanded .disclosure-triangle {
+	background-position: 6px 4px;
+	-webkit-transform: translateZ( 0 ) rotate( 90deg );
+}
+
+.brackets-sftp-upload .line {
+	width: 2em;
+	padding: 0 0 0 .8em;
+	text-align: right;
+}
+
+.brackets-sftp-upload .tag {
+	width: 5.2em;
+	height: 1.8em;
+	padding: 0 .5em;
+}
+
+.brackets-sftp-upload .tag span {
+	display: inline-block;
+	width: 	5.2em;
+	margin: 0 .1em;
+	padding: 0;
+	background-color: #555;
+	color: #fff;
+	text-align: center;
+	text-transform: uppercase;
+	border-radius: .5em;
+}
+
+/*--- TAGS STYLING ---*/
+.brackets-sftp-upload .tag .todo {
+	background-color: #d95;
+}
+
+.brackets-sftp-upload .tag .note {
+	background-color: #696;
+}
+
+.brackets-sftp-upload .tag .fixme {
+	background-color: #c95353;
+}
+
+.brackets-sftp-upload .tag .future {
+	background-color: #5a99c3;
+}
+
+/*--- ICON ---*/
+#brackets-sftp-upload-icon {
+	background-image: url( 'images/sftp-icon.svg' );
+}
+
+#brackets-sftp-upload-icon.active {
+	background-position-y: -24px;
+}
+
+#brackets-sftp-upload-icon.uploading {
+    background-position-x: -24px;
+}
+
+/*--- TOOLBAR ---*/
+.brackets-sftp-upload .tools {
+	position: absolute;
+	top: 1px;
+	bottom: 0;
+	right: 40px;
+	margin-left: -.5em;
+	line-height: 24px;
+	text-align: right;
+}
+
+.brackets-sftp-upload .tools > div {
+	display: inline;
+}
+
+.brackets-sftp-upload .tools a {
+	display: inline-block;
+	margin-left: .25em;
+	text-decoration: none;
+}
+
+.brackets-sftp-upload .icons a {
+	width: 18px;
+	height: 18px;
+	background: transparent url( 'images/sprite.svg' ) no-repeat left top;
+	line-height: 1;
+	border-radius: 3px;
+}
+
+.brackets-sftp-upload .icons a:hover {
+	opacity: .5;
+	background-color: #fff;
+}
+
+.brackets-sftp-upload .icons .collapse-all {
+	background-position: left top;
+}
+
+.brackets-sftp-upload .icons .expand-all {
+	background-position: left -18px;
+}
+
+.brackets-sftp-upload .icons .indicator {
+	opacity: .5;
+	background-position: left -36px;
+}
+
+.brackets-sftp-upload.todo-file .icons .indicator {
+	opacity: 1;
+}
+
+.brackets-sftp-upload .tags {
+	vertical-align: middle;
+	font-size: 0.8em;
+	text-transform: uppercase;
+}
+
+.brackets-sftp-upload .tags a {
+	padding: 0 .25em;
+	line-height: 18px;
+	border-radius: 3px;
+	color: #666;
+}
+
+.brackets-sftp-upload .tags .visible,
+.brackets-sftp-upload .tags a:hover {
+	opacity: .8;
+	background-color: #fff;
+}
+
+.brackets-sftp-upload .tags .visible {
+	opacity: .6;
+}
+
+.brackets-sftp-upload .tags .count {
+	padding: 0 .15em;
+}
+
+/*--- PROJECT WIDE SEARCH ---*/
+.brackets-sftp-upload.current .icons .expand-all,
+.brackets-sftp-upload.current .icons .collapse-all,
+.brackets-sftp-upload.current tr.file {
+	display: none;
+}
+
+.sftp-upload-server-config-form .field-container {
+    margin-bottom: 7px;
+}
+
+.sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
+    margin-left: 105px;
+    margin-bottom: 0;
+    display: inline-block;
+}
+
+.sftp-upload-server-config-form label {
+    position: absolute;
+    margin-top: 5px;
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+
+/* Checkbox has less height than standard text box */
+.sftp-upload-server-config-form .upload-on-save label {
+    margin-top: 0px;
+}
+
+.sftp-upload-server-config-form .future label {
+    width: 210px;
+    margin-top: 7px;
+}
+

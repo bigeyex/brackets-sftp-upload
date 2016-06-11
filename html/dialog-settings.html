@@ -1,0 +1,63 @@
+<div id="sftpupload-settings-dialog" class="modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">{{ Strings.SETTINGS_DIALOG_TITLE }}</h1>
+    </div>
+    {{#info}}
+    <div class="modal-body table-striped tab-content sftp-upload-server-config-form">
+        <div class="field-container server">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_TYPE }}:
+            </label>
+            <select class="input-method" value="{{method}}">
+                <option value="ftp">{{ Strings.SETTINGS_DIALOG_TYPE_FTP }}</option>
+                <option value="sftp" selected>{{ Strings.SETTINGS_DIALOG_TYPE_SFTP }}</option>
+            </select>
+        </div>
+        <div class="field-container host">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_HOST }}:
+            </label>
+            <input type="text" class="input-host" value="{{host}}"/>
+        </div>
+        <div class="field-container port">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_PORT }}:
+            </label>
+            <input type="text" class="input-port" value="{{port}}"/>
+        </div>
+        <div class="field-container username">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_USERNAME }}:
+            </label>
+            <input type="text" class="input-username" value="{{username}}"/>
+        </div>
+        <div class="field-container rsa-path">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_RSAMSG }}:
+            </label>
+            <input type="text" class="input-rsa-path" placeholder="(optional)" value="{{rsaPath}}"/>
+        </div>
+        <div class="field-container password">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_PASSWORD }}:
+            </label>
+            <input type="password" class="input-password" value="{{password}}"/>
+        </div>
+        <div class="field-container server-path">
+            <label>
+                {{ Strings.SETTINGS_DIALOG_PATH }}:
+            </label>
+            <input type="text" class="input-server-path" value="{{serverPath}}"/>
+        </div>
+        <div class="field-container upload-on-save">
+            <input type="checkbox" class="input-save" value="1" id="input-save-checkbox"/>
+            <label for="input-save-checkbox" style="width:auto;">{{ Strings.SETTINGS_UPLOAD_ON_SAVE }}</label>
+        </div>
+    </div>
+    {{/info}}
+
+    <div class="modal-footer">
+        <button data-button-id="ok" class="dialog-button btn primary">{{ Strings.OK }}</button>
+        <button data-button-id="cancel" class="dialog-button btn">{{ Strings.CANCEL }}</button>
+    </div>
+</div>

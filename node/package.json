@@ -1,0 +1,25 @@
+{
+  "name": "sftp-upload-domain",
+  "version": "0.1.0",
+  "description": "Brackets domain for implementing the extension SFtp-upload",
+  "author": "Wang Yu <bigeyex@gmail.com>",
+  "homepage": "https://github.com/bigeyex/brackets-sftp-upload.git",
+  "keywords": [
+    "ssh",
+    "scp",
+    "brackets"
+  ],
+  "dependencies": {
+    "scp2": "~0.1.4",
+    "walk": "~2.3.3",
+    "jsftp": "~1.3.0",
+    "jsftp-mkdirp": "~0.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bigeyex/brackets-sftp-upload.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bigeyex/brackets-sftp-upload/issues"
+  }
+}
