@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #compiled source #
 ###################
 *.com
@@ -41,4 +42,8 @@ config.codekit
 brackets.json
 
 # node.js #
+node_modules
+=======
+
+config.json
 node_modules
