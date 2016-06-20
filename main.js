@@ -153,7 +153,7 @@ define(function (require, exports, module) {
 					(this.queuing_fisined === true ? ('[' + Strings.QUEUED + ' ' +this.itens_length+']') : '')))) : Strings.NO_QUEUE;
 
 				$('#brackets-sftp-upload .status-stab').text(str);
-				$('div.label',$indicator).html(str);
+				$('div.indicator-label',$indicator).html(str);
 			}
 
 		};
