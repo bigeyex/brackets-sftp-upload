@@ -19,12 +19,26 @@ define( {
 	SERVER: "Server",
 	TEST_CONNECTION: "Test Connection",
 	VIEW_LOG: "View Log",
+	DOWNLOAD: "Download",
+	FILE: "File",
+	FOLDER: "Folder",
+	OPEN: "Open",
+	CLOSE: "Close",
+	MODIFICATIONS: "Modifications",
+	TRANSACTIONS: "Transactions",
+
+	QUEUED: 'Queued',
+	QUEUING: 'Queuing',
+	PROCESSING: 'Processing',
+	FINISHED: 'Finished',
+	NO_QUEUE: 'No Queue',
 	
 	// TOOLBAR.
 	SERVER_SETUP: "Server Setup",
 	UPLOAD_ALL: "Upload All",
 	SKIP_ALL: "Skip All",
 	BACKUP_ALL: "Backup All",
+	CLEAR_ALL_TRANSACTIONS: "Clear Transactions",
 	
 	// SETTINGS DIALOG.
 	SETTINGS_DIALOG_TITLE:        "SFTP Settings",
@@ -38,7 +52,11 @@ define( {
 	SETTINGS_DIALOG_RSAMSG:       "RSA Key Path",
 	SETTINGS_DIALOG_PATH: 		  "Server Path",
 	SETTINGS_UPLOAD_ON_SAVE:      "Upload On Save",
+	SETTINGS_DIALOG_ENABLE_BACKUP: "Enable Backup",
 	SETTINGS_DIALOG_PATH_BACKUP:  "Backup Path",
+	SETTINGS_DIALOG_BACKUP_BY_DAY: "Separate backups by date folder",
+	SETTINGS_DIALOG_BACKUP_PROMPT: "Prompt for folder input each backup",
+    SETTINGS_DIALOG_PATH_SAVED_LISTS:  "Saved List Paths",
 	SETTINGS_DIALOG_SERVER_NAME:  "Name",
 	SETTINGS_DIALOG_SERVER_LIST:  "Servers",
 	SETTINGS_DIALOG_SERVER_DEFAULT_NAME:  "Default",
@@ -50,6 +68,7 @@ define( {
 	BACKUP_FILES_TITLE:      "SFTP - Backup Changed Files",
 	BACKUP_FILES_LOCAL_PATH:      "Save To",
 	BACKUP_FILES_START:      "Start Download",
+	BACKUP_FILES_FOLDER_HELP: "Folders starting with '/' or X:/ will be treated as root folders. Otherwise inside the project folder.",
 	
 	// NO SERVER SETUP DIALOG
 	NO_SERVER_SETUP: "SFTP - No Server Setup",

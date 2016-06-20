@@ -91,6 +91,18 @@
 }
 
 /*--- TOOLBAR ---*/
+.brackets-sftp-upload .tabs ul { list-style-type: none; }
+.brackets-sftp-upload .tabs ul li {
+	display: inline-block;
+	cursor: pointer;
+	padding: 4px;
+}
+.brackets-sftp-upload .tabs ul li:hover { background: rgba(0, 0, 0, 0.25); }
+.brackets-sftp-upload .tabs ul li.selected { background: rgba(0, 0, 0, 0.25); }
+
+.brackets-sftp-upload .table-container {display: none; height: 100%;}
+.brackets-sftp-upload .table-container.selected {display: block;}
+
 .brackets-sftp-upload .tools {
 	position: absolute;
 	top: 1px;
@@ -180,17 +192,26 @@
 }
 
 .sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
-    margin-left: 105px;
     margin-bottom: 0;
     display: inline-block;
 }
 
 .sftp-upload-server-config-form label {
-    position: absolute;
-    margin-top: 5px;
     display: inline-block;
     width: 100px;
     text-align: right;
+}
+
+.sftp-upload-server-config-form .checkbox input[type=checkbox] {
+	float: none;
+	display: inline-block;
+}
+
+.sftp-upload-server-config-form .checkbox label {
+ 	position: relative;
+	width: auto;
+	text-align: left;
+	margin-left: 100px;
 }
 
 /* Checkbox has less height than standard text box */
@@ -202,9 +223,9 @@
     width: 210px;
     margin-top: 7px;
 }
-
+.input-folder.large { width: 400px; }
 #sftpupload-log-viewer-dialog { width: 70%; }
-#sftpupload-settings-dialog { width: 750px; }
+#sftpupload-settings-dialog { width: 750px; min-height: 500px; }
 #sftpuoload-settings-server-list {
 	background: #333;
 	padding: 0.5em;
@@ -253,12 +274,13 @@ button.btn-server-setup > b {
 .sftp-upload-settings-list-panel {
 	float: left;
 	width: 250px;
-}
-
-.sftp-upload-settings-list-panel {
 	float: left;
 	display: inline-block;
 	margin-left: 10px;
+}
+
+.sftp-upload-settings-list-panel:nth-child(2) {
+	width: auto;
 }
 
 .sftp-conn-error {
@@ -321,4 +343,14 @@ button.btn-server-setup > b {
 
 #sftp-update-browser ul li.folder > ul {
 	margin-left: 10px;
+}
+
+
+ul.sftp-browser-context-menu {
+	max-height: 620px !important; min-height: 100px; height: auto;
+	overflow: visible;
+}
+.sftp-browser-context-menu li { padding: 3px 0; }
+.sftp-browser-context-menu li:hover {
+	background: rgba(0, 0, 185, 0.5);
 }

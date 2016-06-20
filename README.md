@@ -5,17 +5,19 @@ brackets-sftp-upload
 
 Extension Home: https://github.com/bigeyex/brackets-sftp-upload
 
-Those improvements are eventually going to be merged into the extension
+Those improvements are eventually going to be merged into the extension but there's probably a lot of bugs attached with them =P
 
 ### Improvements made ###
 
+* Transactions Tab - show status of each upload/download
 * Multiple server settings per project
+* Test Connection Button & Show Connection Error
 * Backup changed files
 * Download files - FTP Walk (All files on FTP)
-* Download file - Local Walk (Only files that exists locally)
-* Test Connection Button & Show Connection Error
+* Download files - Local Walk (Only files that exists locally)
+* FTP Browser with download option (by context menu)
 * Improved Status Bar
-* Log dialog
+* Log dialog viewer for errors
 
 ====================
 

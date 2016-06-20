@@ -1,3 +1,6 @@
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window, Mustache */
+
 define( function( require, exports, module ) {
     'use strict';
 
@@ -10,18 +13,12 @@ define( function( require, exports, module ) {
         PreferencesManager = brackets.getModule( 'preferences/PreferencesManager' ),
         preferences = PreferencesManager.getExtensionPrefs( 'bigeyex.bracketsSFTPUpload' );
 
-
-
     var self = this,
         propertyList = {},
         projectUrl = '';
 
-    $(ProjectManager).on('projectOpen', function(){
-        projectUrl = ProjectManager.getProjectRoot().fullPath;
-    });
-
     function init(callback){
-
+        projectUrl = ProjectManager.getProjectRoot().fullPath;
     }
 
     function get(key){
@@ -39,7 +36,15 @@ define( function( require, exports, module ) {
     function _save(){
     }
 
+
     exports.get = get;
     exports.set = set;
+
+	exports.setProjectUrl = function(url) {
+		projectUrl = url;
+	};
+	exports.getProjectUrl = function() {
+		return projectUrl;
+	};
 
 } );

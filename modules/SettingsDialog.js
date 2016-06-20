@@ -1,10 +1,13 @@
-/*jshint node: true, jquery: true*/
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window */
 define( function( require, exports ) {
     'use strict';
     
     // Get module dependencies.
     var Dialogs = brackets.getModule( 'widgets/Dialogs' ),
-        
+        FileSystem = brackets.getModule( 'filesystem/FileSystem' ),
+		Mustache = brackets.getModule("thirdparty/mustache/mustache"),
+
         // Extension modules.
         Strings = require( 'modules/Strings' ),
         dataStorage = require( 'modules/DataStorageManager' ),
@@ -44,15 +47,30 @@ define( function( require, exports ) {
                 port.val(defaultFTPport);
             }
         });
+        $('#sftpupload-settings-dialog .input-backup-enabled').change(function(){
+            if ( $(this).is(':checked')) {
+				$(this).parents('.checkbox').next('fieldset').show();
+			}
+			else {
+				$(this).parents('.checkbox').next('fieldset').hide();
+			}
+        });
     }
     
     function newServerObj() {
-        return { __id: 0, name: "default", method:'sftp', host:'', port:defaultSFTPport, username:'', rsaPath:'', password:'', serverPath:'', uploadOnSave:0, backupPath:defaultBackUpPath};
+        return { __id: 0, name: "default", method:'sftp', host:'', port:defaultSFTPport, username:'', rsaPath:'', password:'', serverPath:'', uploadOnSave:0, backupPath: defaultBackUpPath,
+			backup: {
+				enabled: false,
+				byDate: true,
+				path: defaultBackUpPath,
+				alwaysPrompt: false
+			}
+	   };
     }
 	
 	function saveServer(serverInfo) {
 		var serverList = dataStorage.get('server_list');
-		if ( serverInfo.__id == 0 ) {
+		if ( serverInfo.__id === 0 ) {
 			serverList.server_ids = serverList.server_ids + 1;
 			serverInfo.__id = serverList.server_ids;
 		}
@@ -90,17 +108,22 @@ define( function( require, exports ) {
 			rsaPath: $('.input-rsa-path', $dialog).val(),
 			password: $('.input-password', $dialog).val(),
 			serverPath: $('.input-server-path', $dialog).val(),
-			backupPath: $('.input-backup-path', $dialog).val(),
-			uploadOnSave: $('.input-save', $dialog).is(':checked')
+			uploadOnSave: $('.input-save', $dialog).is(':checked'),
+			backup: {
+				enabled: $('.input-backup-enabled', $dialog).is(':checked'),
+				path: $('.input-backup-path', $dialog).val(),
+				byDate: $('.input-backup-by-day', $dialog).is(':checked'),
+				alwaysPrompt:$('.input-backup-prompt', $dialog).is(':checked')
+			}
 		};	
 	}
-	
-	
+
 	function clearForm() {
 		var $dialog = dialog.getElement();
 		$('input:text', $dialog).val('');
 		$('.input-id', $dialog).val(0);
 		$('.input-port', $dialog).val(defaultFTPport);
+		$('input[type=checkbox]', $dialog).removeProp('checked');
 	}
 	
 	function fillForm(serverInfo) {
@@ -118,7 +141,22 @@ define( function( require, exports ) {
 		$('.input-rsa-path', $dialog).val(serverInfo.rsaPath);
 		$('.input-password', $dialog).val(serverInfo.password);
 		$('.input-server-path', $dialog).val(serverInfo.serverPath);
-		$('.input-backup-path', $dialog).val(serverInfo.backupPath);
+
+		if ( serverInfo.backup !== undefined ) {
+			$('.input-backup-path', $dialog).val(serverInfo.backup.path);
+
+			if ( serverInfo.backup.enabled === true ) {
+				$('.input-backup-enabled', $dialog).prop('checked', true).parents('.checkbox').next('fieldset').show();
+			}
+			else {
+				$('.input-backup-enabled', $dialog).parents('.checkbox').next('fieldset').hide();
+			}
+			if ( serverInfo.backup.byDate ) $('.input-backup-by-day', $dialog).prop('checked', true);
+			if ( serverInfo.backup.alwaysPrompt ) $('.input-backup-prompt', $dialog).prop('checked', true);
+		}
+		else {
+			$('.input-backup-path', $dialog).val(serverInfo.backupPath);
+		}
 	}
 	/**
      * Exposed method to update footer status
@@ -163,7 +201,7 @@ define( function( require, exports ) {
                  selected_id: 1,
                  server_ids: 1,
                  servers: {
-                     '1' : $.extend({}, serverInfo, {
+                     '1' : $.extend(true, {}, serverInfo, {
                         __id: 1,
                         name: "default",
                         backupPath: defaultBackUpPath
@@ -229,7 +267,8 @@ define( function( require, exports ) {
         })
         .off('click', 'button')
         .on('click', 'button', function(evt) {
-            var buttonId = $(this).data('button-id');
+            var $btn = $(this),
+				buttonId = $btn.data('button-id');
             if ( buttonId === 'ok' ) {
 				itensToRemove = [];
                 saveServer(getFormInfo());
@@ -258,6 +297,16 @@ define( function( require, exports ) {
             else if (buttonId === 'new') {
                 clearForm();
             }
+			else if (buttonId === 'open-folder') {
+				FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, dataStorage.getProjectUrl(), null, function (err, files) {
+					if (!err) {
+						// If length == 0, user canceled the dialog; length should never be > 1
+						if (files.length > 0) {
+							$btn.prev('input:text').val(files[0]);
+						}
+					}
+				});
+			}
             else {
 				itensToRemove = [];
                 dialog.close();

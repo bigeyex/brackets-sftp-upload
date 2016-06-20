@@ -1,4 +1,5 @@
-/*jshint node: true, jquery: true*/
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window, Mustache */
 /*!
  * Brackets Todo 0.5.3
  * Display all todo comments in current document or project.
@@ -19,12 +20,14 @@ define(function (require, exports, module) {
 		EditorManager = brackets.getModule('editor/EditorManager'),
 		DocumentManager = brackets.getModule('document/DocumentManager'),
 		WorkspaceManager = brackets.getModule('view/WorkspaceManager'),
+		Mustache = brackets.getModule("thirdparty/mustache/mustache"),
 		Resizer = brackets.getModule('utils/Resizer'),
 		AppInit = brackets.getModule('utils/AppInit'),
 		FileUtils = brackets.getModule('file/FileUtils'),
 		FileSystem = brackets.getModule('filesystem/FileSystem'),
 		ExtensionUtils = brackets.getModule('utils/ExtensionUtils'),
 		NodeDomain = brackets.getModule("utils/NodeDomain"),
+		StatusBar = brackets.getModule('widgets/StatusBar'),
 
 		// Extension basics.
 		COMMAND_ID = 'bigeyex.bracketsSFTPUpload.enable',
@@ -47,7 +50,9 @@ define(function (require, exports, module) {
 		// Mustache templates.
 		todoPanelTemplate = require('text!html/panel.html'),
 		todoRowTemplate = require('text!html/row.html'),
+		transactionRowTemplate = require('text!html/row-transaction.html'),
 		browserPanelTemplate = require('text!html/browser-panel.html'),
+		indicatorTemplate = require('text!html/indicator.html'),
 
 		// Setup extension.
 		serverInfo, //sftp username/password etc;
@@ -56,6 +61,7 @@ define(function (require, exports, module) {
 		$todoIcon = $('<a href="#" title="' + Strings.EXTENSION_NAME + '" id="brackets-sftp-upload-icon"></a>'),
 		$statusIndicator,
 		$browserPanel,
+		$indicator,
 		
 		// Get view menu.
 		menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU),
@@ -76,24 +82,57 @@ define(function (require, exports, module) {
 				this.itens_length = length;
 				this.queuing = false;
 				this.queuing_fisined = false;
+				$("#sftp-transactions-tbody").empty();
+				this.status();
 			},
 
-			error: function (msg) {
+			error: function (msg, jobId) {
 				this.itens_error = this.itens_error + 1;
 				this.itens_completed = this.itens_completed + 1;
 				this.log('Error', msg);
+
+				var $tr = this.getTransactionRow(jobId);
+				$tr.removeClass("processing")
+					.addClass("error")
+					.children('td.status')
+					.html( msg );
+
+				this.status();
 			},
 
-			downloaded: function (remoteFile, localFile) {
-				this.itens_ok = this.itens_ok + 1;
-				this.itens_completed = this.itens_completed + 1;
-				this.log('Downloaded', localFile + ' --> ' + remoteFile);
+			getTransactionRow: function(jobId) {
+				return $('tr[data-job-id='+jobId+']', $("#sftp-transactions-tbody"));
 			},
 
-			uploaded: function (remoteFile, localFile) {
+			jobQueued: function(job) {
+				this.itens_length = this.itens_length + 1;
+				if ( job.type == "upload" ) job.signal = "-->";
+				else job.signal = "<--";
+				job.status = Strings.QUEUED;
+				$("#sftp-transactions-tbody").append(Mustache.render(transactionRowTemplate, job));
+				this.status();
+			},
+
+			processing: function(jobId) {
+				var $tr = this.getTransactionRow(jobId);
+				$tr.addClass("processing")
+					.children('td.status')
+					.html( Strings.PROCESSING );
+			},
+
+			completed: function(jobId) {
 				this.itens_ok = this.itens_ok + 1;
 				this.itens_completed = this.itens_completed + 1;
-				this.log('Uploaded', localFile + ' --> ' + remoteFile);
+				var $tr = this.getTransactionRow(jobId);
+				$tr.removeClass("processing")
+					.addClass("completed")
+					.children('td.status')
+					.html( Strings.FINISHED );
+
+				this.status();
+				if ( $tr.data('type')  === 'upload' ) {
+					skipItem($.trim($tr.find('td.localPath').text()));
+				}
 			},
 
 			log: function (type, text) {
@@ -109,9 +148,12 @@ define(function (require, exports, module) {
 
 			status: function () {
 				var perc = this.itens_length > 0 ? Math.floor((this.itens_completed * 100) / this.itens_length) : 0;
-				return (' ' + perc + '% (' + this.itens_ok + ' ok/' + this.itens_error + ' errors)' +
-					(this.queuing === true ? '[Queuing ' + this.itens_length + '...]' : 
-					(this.queuing_fisined === true ? '[Queued '+this.itens_length+']' : '')));
+				var str = this.itens_length > 0 ? ((' ' + perc + '% (' + this.itens_ok + ' ok/' + this.itens_error + ' errors)' +
+					(this.queuing === true ? ('[ ' + Strings.QUEUING  + ' ' + this.itens_length + '...]' ) :
+					(this.queuing_fisined === true ? ('[' + Strings.QUEUED + ' ' +this.itens_length+']') : '')))) : Strings.NO_QUEUE;
+
+				$('#brackets-sftp-upload .status-stab').text(str);
+				$('div.label',$indicator).html(str);
 			}
 
 		};
@@ -159,16 +201,21 @@ define(function (require, exports, module) {
 	 */
 	function _getServerInfo() {
 		var serverInfo = dataStorage.get('server_list');
-		if ( ! serverInfo || serverInfo === undefined || serverInfo == "" )
+		if ( ! serverInfo || serverInfo === undefined || serverInfo === "" )
 			serverInfo = dataStorage.get('server_info');
 		
 		if ( typeof serverInfo === 'object' && serverInfo.hasOwnProperty('servers')) {
 			return serverInfo.servers[serverInfo.selected_id];
 		}
 		else if ( typeof serverInfo === 'object') {
-			if (serverInfo.backupPath === undefined) {
-				serverInfo.name = "default";
-				serverInfo.backupPath = settingsDialog.getFolder();
+			if ( serverInfo.backupPath === undefined || serverInfo.backup === undefined ) {
+				if ( serverInfo.backupPath === undefined ) serverInfo.name = "default";
+				serverInfo.backup = {
+					enabled: false,
+					path: serverInfo.backupPath || settingsDialog.getFolder(),
+					byDate: true,
+					alwaysPrompt: false
+				};
 			}
 			return serverInfo;
 		}
@@ -327,25 +374,18 @@ define(function (require, exports, module) {
 	// upload ONE file to the server
 	function uploadItem(localPath, remotePath) {
 		var serverInfo = _getServerInfo();
-		status.reset(1);
+		//status.reset(1);
 		showUploadingIconStatus(true);
-		_nodeDomain.exec('upload', localPath, remotePath, serverInfo).fail(function (err) {
-			showUploadingIconStatus(false);
-			updateStatus(err);
-		});
+		_nodeDomain.exec('upload', localPath, remotePath, serverInfo);
 	}
 
 	// upload ONE dir to the server
 	function uploadDirectory(localPath, remotePath) {
-		status.reset();
+		//status.reset();
 		status.queuing = true;
 		var serverInfo = _getServerInfo();
 		showUploadingIconStatus(true);
-		_nodeDomain.exec('uploadDirectory', localPath, remotePath, serverInfo).fail(function (err) {
-			status.log('Error', err);
-			showUploadingIconStatus(false);
-			updateStatus(err);
-		});
+		_nodeDomain.exec('uploadDirectory', localPath, remotePath, serverInfo);
 	}
 
 	// upload all files in the panel to the server
@@ -361,52 +401,38 @@ define(function (require, exports, module) {
 			});
 		}
 
-		status.reset(filelist.length);
+		//status.reset(filelist.length);
 
 		showUploadingIconStatus(true);
-		_nodeDomain.exec('uploadAll', filelist, serverInfo).fail(function (err) {
-			showUploadingIconStatus(false);
-			updateStatus(err);
-		});
+		_nodeDomain.exec('uploadAll', filelist, serverInfo);
 	}
 
 	// backup all files in the panel to a folder
 	function downloadAllItems(toFolder) {
-
 		var serverInfo = _getServerInfo(),
 			trs = $('#brackets-sftp-upload tr .upload-button'),
 			filelist = [],
-			projectUrl = ProjectManager.getProjectRoot().fullPath,
-			basePath = _getBackupFullPath(serverInfo, toFolder);
+			projectUrl = ProjectManager.getProjectRoot().fullPath;
 
 		for (var i = 0; i < trs.length; i++) {
 			var $el = $(trs[i]),
 				filePath = $el.attr('x-file').replace(projectUrl, '');
 
 			filelist.push({
-				localPath: (basePath + filePath),
+				localPath: (toFolder + filePath),
 				remotePath: $el.attr('r-file')
 			});
 		}
 
-		status.reset(filelist.length, true);
-
-		disableButtons();
-		_nodeDomain.exec('downloadAll', filelist, serverInfo)
-			.fail(function (err) {
-				status.is_downloading = false;
-				showUploadingIconStatus(false);
-				updateStatus(err);
-				enableButtons();
-			});
+		_nodeDomain.exec('downloadAll', filelist, serverInfo);
 	}
 
 	// Opens dialog to make backup
-	function setUpDownLoadFolder(callback) {
+	function setUpDownLoadFolder(callback, forBackup) {
 		var serverInfo = _getServerInfo(),
-			path = _getBackupFullPath(serverInfo, '');
+			path = forBackup !== false ? _getBackupFullPath(serverInfo, '') : dataStorage.getProjectUrl();
 		
-		if ( path ) backupDialog.showDialog(serverInfo, callback, path);
+		if ( path ) backupDialog.showDialog(serverInfo, callback, path );
 	}
 	
 	// Get the full path of the backup folder
@@ -418,15 +444,23 @@ define(function (require, exports, module) {
 			backupDialog.showMessage(Strings.NO_SERVER_SETUP, Strings.SERVER_SETUP_NEDEED);
 			return false;
 		}
-		else if ( !serverInfo.backupPath || serverInfo.backupPath === undefined || serverInfo.backupPath === "" ) {
+		else if ( serverInfo.backup === undefined || !serverInfo.backup.path || serverInfo.backup.path === undefined || serverInfo.backup.path === "" ) {
 			backupDialog.showMessage(Strings.NO_SERVER_SETUP, Strings.NO_BACKUP_FOLDER);
 			return false;
 		}
+		folder = folder || '';
+		var path = serverInfo.backup.path;
+
+		if (path.lastIndexOf("/") !== path.length-1) {
+			path += "/";
+		}
 		
-		if (serverInfo.backupPath.indexOf(":") > -1) { // full dir
-			basePath = serverInfo.backupPath + folder + (isFile !== true ? "/" : '');
+		if ( serverInfo.backup.byDate ) path += backupDialog.getDateFolderName();
+
+		if ( path.indexOf("/") === 0 || path.indexOf(":") > -1) { // full dir
+			basePath = path + folder + (isFile !== true ? "/" : '');
 		} else {
-			basePath = projectUrl + serverInfo.backupPath + "/" + folder + (isFile !== true ? "/" : '');
+			basePath = projectUrl + path + "/" + folder + (isFile !== true ? "/" : '');
 		}
 		// replace any '//' to '/'
 		basePath = basePath.replace(/\/+/g, "/");
@@ -434,24 +468,19 @@ define(function (require, exports, module) {
 	}
 
 	function startBackup() {
-		setUpDownLoadFolder(downloadAllItems);
+		var objServer = _getServerInfo();
+		if ( objServer.backup.alwaysPrompt !== false ) {
+			setUpDownLoadFolder(downloadAllItems);
+		}
+		else {
+			var path = _getBackupFullPath(objServer);
+			downloadAllItems(path);
+		}
 	}
 	
 	function downloadFile(remotePath, localPath, walkPath, isFile) {
-		
-		var config = _getServerInfo(),
-			basePath = _getBackupFullPath(config, localPath, isFile);
-
-		status.is_downloading = true;
-		disableButtons();
-		
-		_nodeDomain.exec('download', remotePath, basePath, walkPath, config)
-			.fail(function (err) {
-				status.is_downloading = false;
-				showUploadingIconStatus(false);
-				updateStatus(err);
-				enableButtons();
-			});
+		var config = _getServerInfo();
+		_nodeDomain.exec('download', remotePath, localPath, walkPath, config);
 	}
 	
 	function listRemoteDir(remotePath) {
@@ -459,10 +488,7 @@ define(function (require, exports, module) {
 		status.status('Listing...');
 		$browserPanel.show();
 		resizeBrowserPanel();
-		_nodeDomain.exec('list', remotePath || '', config)
-			.fail(function (err) {
-				status.log('Error', err);
-			});
+		_nodeDomain.exec('list', remotePath || '', config);
 	}
 	
 	function startServerBrowser() {
@@ -486,8 +512,10 @@ define(function (require, exports, module) {
 			var css = '';
 			if ( file.type == 1 ) { // folder
 				css += 'folder';
+			}else {
+				css += 'file';
 			}
-			html += '<li class="'+css+'" data-path="'+path+file.name+'"><label>'+file.name+'</label></li>';
+			html += '<li class="'+css+'" data-path="'+path+'/'+file.name+'"><label>'+file.name+'</label></li>';
 		});
 		
 		var $mainUl = $(".sftp-update-browser-holder > ul", $browserPanel);
@@ -538,10 +566,6 @@ define(function (require, exports, module) {
 		dataStorage.set('changed_files', {});
 	}
 
-	// Upda₢te Panel Status
-	function updateStatus(status) {
-		$('#brackets-sftp-upload .status-stab').text(status);
-	}
 	/**
 	 * Listen for save or refresh and look for todos when needed.
 	 */
@@ -589,6 +613,7 @@ define(function (require, exports, module) {
 			});
 
 		ProjectManager.on('projectOpen', function(prj) {
+			dataStorage.setProjectUrl(ProjectManager.getProjectRoot().fullPath);
 			loadSettings(function() {
 				
 			});
@@ -602,12 +627,74 @@ define(function (require, exports, module) {
 		});
 	}
 
+	// Shows browser panel context menu
+	function showContextMenu(evt, $li) {
+		var path = $li.data('path'),
+			type = $li.hasClass("folder") ? "folder" : 'file',
+			isOpen = type === 'folder' && $li.hasClass('open'),
+			actions = {
+				'folder' : [
+					{action: 'toggle-folder', label: (isOpen ? Strings.CLOSE : Strings.OPEN) + " " + Strings.FOLDER},
+					{action: 'download-folder', label: Strings.DOWNLOAD + " " + Strings.FOLDER}
+				],
+				'file': [
+					{action: 'download-file', label: Strings.DOWNLOAD + " " + Strings.FILE}
+				]
+			},
+			html = '<ul class="dropdown-menu dropdownbutton-popup sftp-browser-context-menu" tabindex="1">';
+
+		actions = actions[type];
+		for(var i=0,il=actions.length, a;i<il;i++) {
+			a = actions[i];
+			html += '<li data-action="'+a.action+'"><a href="#">' + a.label + '</a></li>';
+		}
+
+		html += '</ul>';
+
+		var $ul = $(html);
+
+		$ul.appendTo("body").css({
+			position: 'absolute',
+			top: evt.pageY +'px',
+			left: evt.pageX +'px',
+			'z-index': 9999
+		});
+
+		$ul.on('mousedown', 'a', function(evt) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			var $a = $(this),
+				act = $a.parent().data("action");
+			if (act === "download-file") {
+				setUpDownLoadFolder(function(folder) {
+					downloadFile(path, folder, false, true);
+				}, false);
+			}
+			else if (act === 'download-folder') {
+				setUpDownLoadFolder(function(folder) {
+					downloadFile(path, folder, true, false);
+				}, false);
+			}
+			else if (act === 'toggle-folder') {
+				$li.trigger('click');
+			}
+			$ul.remove();
+		})
+		.on('blur', function(evt){
+			$(this).remove();
+		})
+		.focus();
+
+	}
+
 	// Register panel and setup event listeners.
 	AppInit.appReady(function () {
 		var panelHTML = Mustache.render(todoPanelTemplate, {
 			strings: Strings
 		});
 		
+		dataStorage.setProjectUrl(ProjectManager.getProjectRoot().fullPath);
+
 		// Create and cache todo panel.
 		WorkspaceManager.createBottomPanel('bigeyex.bracketsSFTPUpload.panel', $(panelHTML), 100);
 		$todoPanel = $('#brackets-sftp-upload');
@@ -620,6 +707,11 @@ define(function (require, exports, module) {
 
 		// Setup listeners.
 		registerListeners();
+
+		$indicator = $(Mustache.render(indicatorTemplate, {
+			Strings: Strings
+		}));
+		StatusBar.addIndicator('bigeyex.sftpUpload.connIndicator', $indicator, true, 'brackets-sftp-upload-indicator');
 
 		$browserPanel = $(Mustache.render(browserPanelTemplate, {
 			Strings: Strings
@@ -640,6 +732,9 @@ define(function (require, exports, module) {
 			else {
 				$li.children('ul').remove();
 			}
+		})
+		.on('contextmenu', 'li', function(evt) {
+			showContextMenu(evt, $(this));
 		});
 		
 		// Add listener for toolbar icon..
@@ -655,6 +750,14 @@ define(function (require, exports, module) {
 				}
 			});
 		})
+		.on('click', '.tabs > ul > li', function() {
+			var $li = $(this),
+				tab = $li.data('tab'),
+				$tab = $('div.table-container.'+tab, $todoPanel);
+
+			$tab.addClass("selected").siblings('.table-container').removeClass("selected");
+			$li.addClass("selected").siblings('li.selected').removeClass("selected");
+		})
 		.on('click', '.btn-server-browse', function() {
 			startServerBrowser();
 		})
@@ -665,7 +768,10 @@ define(function (require, exports, module) {
 			skipAllItems();
 		})
 		.on('click', '.btn-backup-all', function () {
-			setUpDownLoadFolder(downloadAllItems);
+			startBackup();
+		})
+		.on('click', '.btn-clear-all', function () {
+			status.reset();
 		})
 		.on('click', '.status-stab', function () {
 			viewLog();
@@ -676,20 +782,12 @@ define(function (require, exports, module) {
 			enablePanel(true);
 		}
 		
-		$(_nodeDomain).on('uploading', function (err, msg) {
-				updateStatus('Uploading: ' + msg + status.status());
+		$(_nodeDomain)
+			.on('processing', function(err, jobId) {
+				status.processing(jobId);
 			})
-			.on('downloading', function (err, remoteFile, localFile) {
-				updateStatus('Downloading: ' + remoteFile + status.status());
-			})
-			.on('uploaded', function (err, remoteFile, localFile) {
-				skipItem(localFile);
-				status.uploaded(remoteFile, localFile);
-				updateStatus('Finished: ' + remoteFile + status.status());
-			})
-			.on('downloaded', function (err, remoteFile, localFile) {
-				status.downloaded(remoteFile, localFile);
-				updateStatus('Downloaded: ' + remoteFile);
+			.on('processed', function(err, jobId) {
+				status.completed(jobId);
 			})
 			.on('connection-tested', function (err, ok, msg) {
 				if (ok) {
@@ -699,30 +797,29 @@ define(function (require, exports, module) {
 					status.log('Error', msg);
 				}
 			})
-			.on('queued', function(err, num) {
-				status.itens_length = num;
+			.on('queued', function(err, num, job) {
+				$("button.btn-clear-all", $todoPanel).prop("disabled", true);
+				status.queuing_fisined = false;
+				status.queuing = true;
+				status.jobQueued(job);
 			})
 			.on('queuedend', function(err, num) {
-				status.itens_length = num;
 				status.queuing = false;
 				status.queuing_fisined = true;
+				status.status();
 			})
 			.on('listed', function(err, path, list) {
 				showListedItems(err, path, list);
 			})
-			.on('error', function (err, msg) {
-				status.error(msg);
-				updateStatus('Error: ' + msg);
+			.on('error', function (err, msg, jobId) {
+				status.error(msg, jobId);
 			})
 			.on('jobCompleted', function (err, msg) {
 				showUploadingIconStatus(false);
-				if (status.is_downloading) {
-					updateStatus('Backup Complete! ' + status.status());
-				} else {
-					updateStatus('Upload Complete! ' + status.status());
-				}
 				status.is_downloading = false;
+				status.status();
 				enableButtons();
+				$("button.btn-clear-all", $todoPanel).removeProp("disabled");
 			});
 	});
 });

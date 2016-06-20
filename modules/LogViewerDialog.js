@@ -1,29 +1,32 @@
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window */
 define( function( require, exports ) {
     'use strict';
-    
+
     // Get module dependencies.
     var Dialogs = brackets.getModule( 'widgets/Dialogs' ),
-        
+		Mustache = brackets.getModule("thirdparty/mustache/mustache"),
+
         // Extension modules.
         Strings = require( 'modules/Strings' ),
         dataStorage = require( 'modules/DataStorageManager' ),
         dialogTemplate = require( 'text!../html/dialog-view-logs.html' ),
-        
+
         // Variables.
         dialog;
-    
+
     /**
      * Set each value of the preferences in dialog.
      */
     function setValues( values ) {
     }
-	
-    
+
+
     /**
      * Initialize dialog values.
      */
     function init() {
-        
+
     }
     /**
      * Exposed method to show dialog.
@@ -35,7 +38,7 @@ define( function( require, exports ) {
         }),
         logsHtml = (function() {
             var tmp = '';
-            if ( logs.length == 0 ) return '<li>' + Strings.LOG_VIEWER_EMPTY + '</li>';
+            if ( logs.length === 0 ) return '<li>' + Strings.LOG_VIEWER_EMPTY + '</li>';
             for(var i=0,il=logs.length,l;i<il;i++) {
                 l=logs[i];
                 tmp += '<li>' + l.type + ': ' + l.text + '</li>';
@@ -44,9 +47,9 @@ define( function( require, exports ) {
         }());
         // Save dialog to variable.
         dialog = Dialogs.showModalDialogUsingTemplate( compiledTemplate );
-        
+
         $("#sftpupload-log-viewer").html(logsHtml);
-        
+
         // Open dialog.
         dialog.done( function( buttonId ) {
             // Save preferences if OK button was clicked.
