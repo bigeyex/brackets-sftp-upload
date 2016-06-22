@@ -498,7 +498,7 @@
 				next();
             });
 			walker.on('end', function() {
-				_domainManager.emitEvent("sftpUpload", "queuedend", [self._queueCount]);
+				self.queueingEnd();
 			});
         };
         
@@ -527,7 +527,7 @@
 				next();
             });
 			walker.on('end', function() {
-				_domainManager.emitEvent("sftpUpload", "queuedend", [self._queueCount]);
+				self.queuedend();
 			});		
         };
         
@@ -547,7 +547,11 @@
 			fullRemotePath = fullRemotePath.replace(re, self.config.serverPath); 
             return fullRemotePath;
         };
-    }
+
+		self.queueingEnd = function() {
+			_domainManager.emitEvent("sftpUpload", "queuedend", [this._queueCount]);
+		}
+	}
     
     var sftpJobs = new SftpJobs();
     
@@ -555,6 +559,7 @@
         if(config === undefined) {config=null;}
 		clog('Start Upload: ' + localPath);
         sftpJobs.add(localPath, remotePath, config, 'upload');
+		sftpJobs.queueingEnd();
     }
 	
 	function cmdList(remotePath, config) {
@@ -568,7 +573,6 @@
         for(var i in filelist){
             sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config, 'upload');
         }
-		_domainManager.emitEvent("sftpUpload", "queuedend", [sftpJobs._queueCount]);
     }
     
     function cmdDownloadAll(filelist, config){
@@ -576,13 +580,14 @@
         for(var i in filelist){
             sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config, 'download');
         }
-		_domainManager.emitEvent("sftpUpload", "queuedend", [sftpJobs._queueCount]);
+		sftpJobs.queuedend();
     }
 	
     function cmdDownload(remotePath, localPath, walkPath, config){
         if(config === undefined) {config=null;}
 		if ( ! walkPath || walkPath === null ) {
 			sftpJobs.add(localPath, remotePath, config, 'download');
+			sftpJobs.queueingEnd();
 		}
 		// Walk on local path
 		else if ( typeof walkPath === 'string' ) {
@@ -612,13 +617,12 @@
 					});
 					num_recieved = num_recieved + 1;
 					if ( num_recieved === num_lists) {
-						_domainManager.emitEvent("sftpUpload", "queuedend", [sftpJobs._queueCount]);
+						sftpJobs.queueingEnd();
 					}
 				});
 			};
 			list(remotePath);
 		}
-            
     }
 
 	function cmdTestConnection(config) {
