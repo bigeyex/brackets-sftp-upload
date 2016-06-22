@@ -26,6 +26,8 @@ define( {
 	CLOSE: "Close",
 	MODIFICATIONS: "Modifications",
 	TRANSACTIONS: "Transactions",
+	UPLOADING: "Uploading",
+	DOWNLOADING: "Downloading",
 
 	QUEUED: 'Queued',
 	QUEUING: 'Queuing',

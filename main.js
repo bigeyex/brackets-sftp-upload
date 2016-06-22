@@ -74,6 +74,15 @@ define(function (require, exports, module) {
 			itens_error: 0,
 			_logs: [],
 
+			$status: undefined,
+			$indicator: undefined,
+
+			init : function() {
+                this.$status = $('#brackets-sftp-upload .status-stab');
+                this.$indicator = $('div.indicator-label', $indicator);
+				this.reset();
+			},
+
 			reset: function () {
 				this.is_downloading = false;
 				this.itens_error = 0;
@@ -91,17 +100,31 @@ define(function (require, exports, module) {
 				this.itens_completed = this.itens_completed + 1;
 				this.log('Error', msg);
 
+				// Update transaction
 				var $tr = this.getTransactionRow(jobId);
 				$tr.removeClass("processing")
 					.addClass("error")
 					.children('td.status')
 					.html( msg );
 
+				$tr = $('#sftp-upload-tbody tr[data-job-id="'+jobId+'"]');
+				if ( $tr.length === 1 ) {
+					$tr.find('button').removeProp('disabled');
+				}
+
+				// Modification TR
+				$tr = this.getModificationRow(jobId);
+				$tr.find("button").removeProp("disabled").first().text(Strings.UPLOAD);
+
 				this.status();
 			},
 
 			getTransactionRow: function(jobId) {
 				return $('tr[data-job-id='+jobId+']', $("#sftp-transactions-tbody"));
+			},
+
+			getModificationRow: function(jobId) {
+				return $('#sftp-upload-tbody tr[data-job-id='+jobId+']');
 			},
 
 			jobQueued: function(job) {
@@ -111,7 +134,12 @@ define(function (require, exports, module) {
 				if ( job.type == "upload" ) job.signal = "-->";
 				else job.signal = "<--";
 				job.status = Strings.QUEUED;
+
 				$("#sftp-transactions-tbody").append(Mustache.render(transactionRowTemplate, job));
+				var $tr = $('#sftp-upload-tbody tr[x-file="'+job.localPath+'"]');
+				if ( $tr.length === 1 ) {
+					$tr.attr('data-job-id', job.id).find('button').prop('disabled', 'disabled').first().text(Strings.QUEUED);
+				}
 				this.status();
 			},
 
@@ -126,6 +154,11 @@ define(function (require, exports, module) {
 				$tr.addClass("processing")
 					.children('td.status')
 					.html( Strings.PROCESSING );
+
+				$tr = this.getModificationRow(jobId);
+				$tr.find("button").prop("disabled", "disabled").first().text(Strings.PROCESSING);
+
+				status.status($tr.find('td.filename').text());
 			},
 
 			completed: function(jobId) {
@@ -137,9 +170,13 @@ define(function (require, exports, module) {
 					.children('td.status')
 					.html( Strings.FINISHED );
 
-				this.status();
+				this.status($tr.children('td.localPath').text());
 				if ( $tr.data('type')  === 'upload' ) {
-					skipItem($.trim($tr.find('td.localPath').text()));
+					var $trMod = this.getModificationRow(jobId),
+						path = $trMod.attr('x-file');
+
+					$trMod.addClass("success").find("td:last").text(Strings.FINISHED);
+					skipItem(path);
 				}
 			},
 
@@ -154,14 +191,21 @@ define(function (require, exports, module) {
 				this._logs = [];
 			},
 
-			status: function () {
-				var perc = this.itens_length > 0 ? Math.floor((this.itens_completed * 100) / this.itens_length) : 0;
-				var str = this.itens_length > 0 ? ((' ' + perc + '% (' + this.itens_ok + ' ok/' + this.itens_error + ' errors)' +
-					(this.queuing === true ? ('[ ' + Strings.QUEUING  + ' ' + this.itens_length + '...]' ) :
-					(this.queuing_fisined === true ? ('[' + Strings.QUEUED + ' ' +this.itens_length+']') : '')))) : Strings.NO_QUEUE;
+			status: function (text) {
+				text = text || "";
+				var server = this.selectedServer !== undefined ? this.selectedServer.name : Strings.NO_SERVER_SETUP,
+					perc = this.itens_length > 0 ? Math.floor((this.itens_completed * 100) / this.itens_length) : 0,
+					perc_erro = this.itens_error > 0 ? Math.floor((this.itens_error * 100) / this.itens_error) : 0,
+					strIndicator = this.itens_length === 0 ? server : (perc + '%'),
+					css_class = perc_erro === 100 ? 'error' :
+									(perc_erro === 0 && perc === 100 ? 'success' :
+										(perc_erro > 0 ? 'warn' : '')),
+					strStatus = text + (this.itens_length > 0 ? (('(' + this.itens_ok + ' ok/' + this.itens_error + ' errors)' +
+						(this.queuing === true ? ('[ ' + Strings.QUEUING  + ' ' + this.itens_length + '...]' ) :
+						(this.queuing_fisined === true ? ('[' + Strings.QUEUED + ' ' +this.itens_length+']') : '')))) : Strings.NO_QUEUE);
 
-				$('#brackets-sftp-upload .status-stab').text(str);
-				$('div.indicator-label',$indicator).html(str);
+				this.$status.removeClass('error warn success').addClass(css_class).html(strStatus);
+				this.$indicator.removeClass('error warn success').addClass(css_class).html(strIndicator);
 			}
 
 		};
@@ -336,6 +380,8 @@ define(function (require, exports, module) {
 		$("button.btn-server-setup").html(Strings.SERVER + ': <b>'+ 
 										  (serverInfo ? serverInfo.name : ' ') +'</b>');
 				
+		status.selectedServer = serverInfo;
+
 		for (var filepath in changedFiles) {
 			files.push({
 				path: filepath,
@@ -347,23 +393,6 @@ define(function (require, exports, module) {
 			strings: Strings,
 			files: files
 		}));
-
-		$('#sftp-upload-tbody tr').off().on('click', function () {
-			var fullPath = $(this).attr('x-file');
-			CommandManager.execute(Commands.FILE_OPEN, {
-				fullPath: fullPath
-			});
-		});
-
-		$('#sftp-upload-tbody .upload-button').off().on('click', function (e) {
-			uploadItem($(this).attr('x-file'), $(this).attr('r-file'));
-			e.stopPropagation();
-		});
-
-		$('#sftp-upload-tbody .skip-button').off().on('click', function (e) {
-			skipItem($(this).attr('x-file'));
-			e.stopPropagation();
-		});
 
 		if (callback) {
 			callback();
@@ -606,18 +635,7 @@ define(function (require, exports, module) {
 							file: path.replace(projectUrl, '')
 						}]
 					}));
-
-					$('#sftp-upload-tbody .upload-button').off().on('click', function (e) {
-						uploadItem($(this).attr('x-file'), $(this).attr('r-file'));
-						e.stopPropagation();
-					});
-
-					$('#sftp-upload-tbody .skip-button').off().on('click', function (e) {
-						skipItem($(this).attr('x-file'));
-						e.stopPropagation();
-					});
 				}
-
 			});
 
 		ProjectManager.on('projectOpen', function(prj) {
@@ -720,7 +738,9 @@ define(function (require, exports, module) {
 			Strings: Strings
 		}));
 		StatusBar.addIndicator('bigeyex.sftpUpload.connIndicator', $indicator, true, 'brackets-sftp-upload-indicator');
-
+		$indicator.on('click', function() {
+			viewLog();
+		});
 		$browserPanel = $(Mustache.render(browserPanelTemplate, {
 			Strings: Strings
 		}));
@@ -745,6 +765,22 @@ define(function (require, exports, module) {
 			showContextMenu(evt, $(this));
 		});
 		
+		$('#sftp-upload-tbody')
+			.on('click', '.upload-button', function (e) {
+				uploadItem($(this).attr('x-file'), $(this).attr('r-file'));
+				e.stopPropagation();
+			})
+			.on('click', '.skip-button', function (e) {
+				skipItem($(this).attr('x-file'));
+				e.stopPropagation();
+			})
+			.on('click', function () {
+				var fullPath = $(this).attr('x-file');
+				CommandManager.execute(Commands.FILE_OPEN, {
+					fullPath: fullPath
+				});
+			});
+
 		// Add listener for toolbar icon..
 		$todoIcon.click(function () {
 			CommandManager.execute(COMMAND_ID);
@@ -754,6 +790,7 @@ define(function (require, exports, module) {
 			settingsDialog.showDialog({
 				testConnection: testConnection,
 				serverSelected: function(server) {
+					status.selectedServer = server;
 					$("button.btn-server-setup").html(Strings.SERVER+': <b>'+ server.name+'</b>');
 				}
 			});
@@ -790,6 +827,10 @@ define(function (require, exports, module) {
 			enablePanel(true);
 		}
 		
+		// init status comp
+		status.init();
+
+		// Register for node events
 		$(_nodeDomain)
 			.on('processing', function(err, jobId) {
 				status.processing(jobId);

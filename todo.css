@@ -286,6 +286,12 @@ button.btn-server-setup > b {
 	padding: 4px 6px;
 }
 
+/*
+.brackets-sftp-upload .error,
+.brackets-sftp-upload-indicator .error,
+#brackets-sftp-upload .status-stab.error{ color: #852222; }
+.brackets-sftp-upload .success, .brackets-sftp-upload-indicator .success { color: #696; }
+.brackets-sftp-upload .warn, .brackets-sftp-upload-indicator .warn { color: #FFF; }*/
 
 .sftp-clearfix:after { 
    content: " ";

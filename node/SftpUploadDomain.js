@@ -527,7 +527,7 @@
 				next();
             });
 			walker.on('end', function() {
-				self.queuedend();
+				self.queueingEnd();
 			});		
         };
         
@@ -573,6 +573,7 @@
         for(var i in filelist){
             sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config, 'upload');
         }
+		sftpJobs.queueingEnd();
     }
     
     function cmdDownloadAll(filelist, config){
@@ -580,7 +581,7 @@
         for(var i in filelist){
             sftpJobs.add(filelist[i].localPath, filelist[i].remotePath, config, 'download');
         }
-		sftpJobs.queuedend();
+		sftpJobs.queueingEnd();
     }
 	
     function cmdDownload(remotePath, localPath, walkPath, config){
