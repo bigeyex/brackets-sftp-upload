@@ -797,7 +797,7 @@ define(function (require, exports, module) {
 					status.log('Error', msg);
 				}
 			})
-			.on('queued', function(err, num, job) {
+			.on('queued', function(err, job) {
 				$("button.btn-clear-all", $todoPanel).prop("disabled", true);
 				status.queuing_fisined = false;
 				status.queuing = true;
