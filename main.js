@@ -74,12 +74,12 @@ define(function (require, exports, module) {
 			itens_error: 0,
 			_logs: [],
 
-			reset: function (length, download) {
-				this.is_downloading = (download === true);
+			reset: function () {
+				this.is_downloading = false;
 				this.itens_error = 0;
 				this.itens_ok = 0;
 				this.itens_completed = 0;
-				this.itens_length = length;
+				this.itens_length = 0;
 				this.queuing = false;
 				this.queuing_fisined = false;
 				$("#sftp-transactions-tbody").empty();
@@ -105,12 +105,20 @@ define(function (require, exports, module) {
 			},
 
 			jobQueued: function(job) {
+				this.queuing_fisined = false;
+				this.queuing = true;
 				this.itens_length = this.itens_length + 1;
 				if ( job.type == "upload" ) job.signal = "-->";
 				else job.signal = "<--";
 				job.status = Strings.QUEUED;
 				$("#sftp-transactions-tbody").append(Mustache.render(transactionRowTemplate, job));
 				this.status();
+			},
+
+			queueEnded: function(num) {
+				this.queuing = false;
+				this.queuing_fisined = true;
+				status.status();
 			},
 
 			processing: function(jobId) {
@@ -799,14 +807,10 @@ define(function (require, exports, module) {
 			})
 			.on('queued', function(err, job) {
 				$("button.btn-clear-all", $todoPanel).prop("disabled", true);
-				status.queuing_fisined = false;
-				status.queuing = true;
 				status.jobQueued(job);
 			})
 			.on('queuedend', function(err, num) {
-				status.queuing = false;
-				status.queuing_fisined = true;
-				status.status();
+				status.queueEnded(num);
 			})
 			.on('listed', function(err, path, list) {
 				showListedItems(err, path, list);
