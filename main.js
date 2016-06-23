@@ -74,6 +74,7 @@ define(function (require, exports, module) {
 			itens_error: 0,
 			_logs: [],
 
+			selectedServer: undefined,
 			$status: undefined,
 			$indicator: undefined,
 
@@ -193,7 +194,7 @@ define(function (require, exports, module) {
 
 			status: function (text) {
 				text = text || "";
-				var server = this.selectedServer !== undefined ? this.selectedServer.name : Strings.NO_SERVER_SETUP,
+				var server = this.selectedServer !== undefined && this.selectedServer !== false ? this.selectedServer.name : Strings.NO_SERVER_SETUP,
 					perc = this.itens_length > 0 ? Math.floor((this.itens_completed * 100) / this.itens_length) : 0,
 					perc_erro = this.itens_error > 0 ? Math.floor((this.itens_error * 100) / this.itens_error) : 0,
 					strIndicator = this.itens_length === 0 ? server : (perc + '%'),
@@ -791,7 +792,13 @@ define(function (require, exports, module) {
 				testConnection: testConnection,
 				serverSelected: function(server) {
 					status.selectedServer = server;
-					$("button.btn-server-setup").html(Strings.SERVER+': <b>'+ server.name+'</b>');
+					status.status();
+					if ( server !== undefined && server !== false ) {
+						$("button.btn-server-setup").html(Strings.SERVER+': <b>'+ server.name+'</b>');
+					}
+					else {
+						$("button.btn-server-setup").html(Strings.NO_SERVER_SETUP);
+					}
 				}
 			});
 		})

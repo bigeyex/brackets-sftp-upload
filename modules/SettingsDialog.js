@@ -158,6 +158,7 @@ define( function( require, exports ) {
 			$('.input-backup-path', $dialog).val(serverInfo.backupPath);
 		}
 	}
+
 	/**
      * Exposed method to update footer status
      */
@@ -281,6 +282,8 @@ define( function( require, exports ) {
 						delete list.servers[itensToRemove[i]];
 						if ( list.selected_id == itensToRemove[i] ) {
 							list.selected_id = 0;
+							clearForm();
+							opts.serverSelected(false);
 						}
 					}
 					dataStorage.set('server_list', list);
