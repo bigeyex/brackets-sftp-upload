@@ -17,6 +17,8 @@ define( {
 	SKIP:   "Skip",
 	CLEAR: "Clear",
 	SERVER: "Server",
+	REMOVE: "Remove",
+	DUPLICATE: "Duplicate",
 	TEST_CONNECTION: "Test Connection",
 	VIEW_LOG: "View Log",
 	DOWNLOAD: "Download",

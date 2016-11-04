@@ -36,10 +36,12 @@ define( function( require, exports, module ) {
     function _save(){
     }
 
-
     exports.get = get;
     exports.set = set;
 
+	exports.refreshProjectUrl = function() {
+        projectUrl = ProjectManager.getProjectRoot().fullPath;
+	};
 	exports.setProjectUrl = function(url) {
 		projectUrl = url;
 	};

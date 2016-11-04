@@ -353,3 +353,8 @@ ul.sftp-browser-context-menu {
 .sftp-browser-context-menu li:hover {
 	background: rgba(0, 0, 185, 0.5);
 }
+
+#sftp-upload-settings-list-menu {
+	display: none;
+	position: absolute;
+}

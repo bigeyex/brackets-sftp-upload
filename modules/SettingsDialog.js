@@ -37,7 +37,8 @@ define( function( require, exports ) {
      * Initialize dialog values.
      */
     function init() {
-        $('#sftpupload-settings-dialog .input-method').change(function(){
+
+        $('#sftpupload-settings-dialog').on('change', '.input-method', function(){
             var protcolType = $('#sftpupload-settings-dialog .input-method').val();
             var port = $('#sftpupload-settings-dialog .input-port');
             if(protcolType == 'sftp' && port.val() == defaultFTPport && !HasPortChanged){
@@ -46,15 +47,21 @@ define( function( require, exports ) {
             else if(protcolType == 'ftp' && port.val() == defaultSFTPport && !HasPortChanged){
                 port.val(defaultFTPport);
             }
-        });
-        $('#sftpupload-settings-dialog .input-backup-enabled').change(function(){
+        })
+		.on('chamge', '.input-port', function(evt){
+            HasPortChanged = true;
+        })
+		.on('change', 'input-backup-enabled').change(function(){
             if ( $(this).is(':checked')) {
 				$(this).parents('.checkbox').next('fieldset').show();
 			}
 			else {
 				$(this).parents('.checkbox').next('fieldset').hide();
 			}
-        });
+        })
+		.on('contextmenu', '#sftpuoload-settings-server-list > li', function(evt) {
+
+		});
     }
     
     function newServerObj() {
@@ -70,7 +77,8 @@ define( function( require, exports ) {
 	
 	function saveServer(serverInfo) {
 		var serverList = dataStorage.get('server_list');
-		if ( serverInfo.__id === 0 ) {
+
+		if ( !serverInfo.__id || parseInt(serverInfo.__id) === 0 ) {
 			serverList.server_ids = serverList.server_ids + 1;
 			serverInfo.__id = serverList.server_ids;
 		}
@@ -86,18 +94,23 @@ define( function( require, exports ) {
 	}
 	
 	function updateList(serverList) {
+		serverList = serverList ||  dataStorage.get('server_list');
 		var html = '';
-		for(var id in serverList.servers) {
-			html += '<li data-id="'+id+'"' + (id == serverList.selected_id ? ' class="selected" ' : '') + '>' + 
-						serverList.servers[id].name +
+		for(var i in serverList.servers) {
+			if ( i !== undefined && parseInt(i) > 0 ) {
+				var sv = serverList.servers[i];
+				html += '<li data-id="'+sv.__id+'"' + (sv.__id == serverList.selected_id ? ' class="selected" ' : '') + '>' +
+						sv.name +
 						'<a href="#" class="close">x</a>' +
 					'</li>';
+			}
 		}
 		$("#sftpuoload-settings-server-list").html(html);
 	}
     
 	function getFormInfo() {
 		var $dialog = dialog.getElement();
+
 		return {
 			__id: $('.input-id', $dialog).val(),
 			name: $('.input-name', $dialog).val(),
@@ -177,6 +190,9 @@ define( function( require, exports ) {
 			testConnection: undefined, // function(serverInfo)
 			serverSelected: undefined, // function(serverInfo)
 		};
+
+		dataStorage.refreshProjectUrl();
+
         // Compile dialog template.
         var serverInfo = dataStorage.get('server_info'),
 			serverList = dataStorage.get('server_list'),
@@ -230,10 +246,12 @@ define( function( require, exports ) {
         
         HasPortChanged = false;
         
-        $('#sftpupload-settings-dialog .input-port').change(function(){
-            HasPortChanged = true;
-        });
-        
+		var removeServer = function(id) {
+			itensToRemove.push(id);
+			self.updateStatus(Strings.SETTINGS_DIALOG_SAVE_TO_APLLY);
+			$("#sftp-upload-settings-list-menu").hide();
+		};
+
         $('#sftpuoload-settings-server-list').off('click', 'li').on('click','li', function(evt){
             var $li = $(this),
 				serverId = $(this).data('id'),
@@ -245,14 +263,15 @@ define( function( require, exports ) {
 			$li.addClass('selected').siblings().removeClass('selected');
 			fillForm(server);
 			opts.serverSelected(server);
+
+			$("#sftp-upload-settings-list-menu").show();
         })
 		.on('click', 'li > a.close', function(evt) {
 			evt.stopPropagation();
-			itensToRemove.push($(this).parent().data('id'));
-			self.updateStatus(Strings.SETTINGS_DIALOG_SAVE_TO_APLLY);
+			removeServer($(this).parent().data('id'));
 			$(this).parent().remove();
 		});
-				
+
 		fillForm(selectedServer);
         
 		updateList(serverList);
@@ -275,6 +294,16 @@ define( function( require, exports ) {
                 saveServer(getFormInfo());
                 dialog.close();
             }
+			else if ( buttonId === 'clone') {
+				var newObj = getFormInfo();
+				newObj.__id = 0;
+				saveServer(newObj);
+				updateList();
+			}
+			else if ( buttonId === 'remove') {
+				removeServer(getFormInfo().__id);
+				$('#sftpuoload-settings-server-list li.selected').remove();
+			}
 			else if (buttonId === 'save') {
 				if ( itensToRemove.length > 0 ) {
 					var list = dataStorage.get('server_list');
@@ -299,6 +328,7 @@ define( function( require, exports ) {
             }
             else if (buttonId === 'new') {
                 clearForm();
+				$("#sftp-upload-settings-list-menu").hide();
             }
 			else if (buttonId === 'open-folder') {
 				FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, dataStorage.getProjectUrl(), null, function (err, files) {
