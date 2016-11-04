@@ -1,7 +1,7 @@
 #brackets-sftp-upload .status-stab{
     color: #555;
+    cursor: pointer;
 }
-
 .brackets-sftp-upload table {
 	width: 100%;
 	position: relative;
@@ -91,6 +91,18 @@
 }
 
 /*--- TOOLBAR ---*/
+.brackets-sftp-upload .tabs ul { list-style-type: none; }
+.brackets-sftp-upload .tabs ul li {
+	display: inline-block;
+	cursor: pointer;
+	padding: 4px;
+}
+.brackets-sftp-upload .tabs ul li:hover { background: rgba(0, 0, 0, 0.25); }
+.brackets-sftp-upload .tabs ul li.selected { background: rgba(0, 0, 0, 0.25); }
+
+.brackets-sftp-upload .table-container {display: none; height: 100%;}
+.brackets-sftp-upload .table-container.selected {display: block;}
+
 .brackets-sftp-upload .tools {
 	position: absolute;
 	top: 1px;
@@ -180,17 +192,26 @@
 }
 
 .sftp-upload-server-config-form input, .sftp-upload-server-config-form select {
-    margin-left: 105px;
     margin-bottom: 0;
     display: inline-block;
 }
 
 .sftp-upload-server-config-form label {
-    position: absolute;
-    margin-top: 5px;
     display: inline-block;
     width: 100px;
     text-align: right;
+}
+
+.sftp-upload-server-config-form .checkbox input[type=checkbox] {
+	float: none;
+	display: inline-block;
+}
+
+.sftp-upload-server-config-form .checkbox label {
+ 	position: relative;
+	width: auto;
+	text-align: left;
+	margin-left: 100px;
 }
 
 /* Checkbox has less height than standard text box */
@@ -202,4 +223,138 @@
     width: 210px;
     margin-top: 7px;
 }
+.input-folder.large { width: 400px; }
+#sftpupload-log-viewer-dialog { width: 70%; }
+#sftpupload-settings-dialog { width: 750px; min-height: 500px; }
+#sftpuoload-settings-server-list {
+	padding: 0.5em;
+	/*border: 1px solid #999;*/
+	list-style-type: none;
+	margin: 0;
+	min-height: 225px;
+}
+#sftpuoload-settings-server-list li {
+	margin-bottom: 5px;
+	font-size: 1.1em;
+	position: relative;
+	padding: 0.2em 0.2em;
+}
+#sftpuoload-settings-server-list li.selected {
+	font-weight: bolder;
+}
+#sftpuoload-settings-server-list li:hover {
+	background: rgba(0, 0, 0, 0.3);
+	cursor: pointer;
+	font-weight: bold;
+}
+#sftpuoload-settings-server-list li > a.close { display: none;  }
+#sftpuoload-settings-server-list li:hover > a.close { 
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	display: block;
+	color: #FFF;
+	font-size: 1em;
+	cursor: pointer;
+	padding: 0.2em 0.5em;
+	margin: 0;
+}
+#sftpuoload-settings-server-list li:hover > a.close:hover {
+	background: rgba(0, 0, 0, 0.3);
+}
+button.btn-server-setup > b {
+	font-weight: bold;
+}
+.sftp-upload-settings-list-panel {
+	float: left;
+	width: 250px;
+	float: left;
+	display: inline-block;
+	margin-left: 10px;
+}
 
+.sftp-upload-settings-list-panel:nth-child(2) {
+	width: auto;
+}
+
+.sftp-conn-error {
+	color: #852222;
+	display: block;
+	background: #090909;
+	border-radius: 4px;
+	font-size: 1.3em;
+	padding: 4px 6px;
+}
+
+/*
+.brackets-sftp-upload .error,
+.brackets-sftp-upload-indicator .error,
+#brackets-sftp-upload .status-stab.error{ color: #852222; }
+.brackets-sftp-upload .success, .brackets-sftp-upload-indicator .success { color: #696; }
+.brackets-sftp-upload .warn, .brackets-sftp-upload-indicator .warn { color: #FFF; }*/
+
+.sftp-clearfix:after { 
+   content: " ";
+   display: block; 
+   height: 0; 
+   clear: both;
+   *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML += '<div class="ie7-clear"></div>' );
+}
+
+#sftp-update-browser {
+	position: absolute;
+	right: 29px;
+	top: 0;
+	z-index: 999;
+	width: 250px;
+	min-height: 450px;
+	padding: 6px;
+	display: none;
+	box-sizing: border-box;
+	overflow: auto;
+}
+#sftp-update-browser * { box-sizing: border-box; }
+
+#sftp-update-browser a.close { position: absolute; top: 3px; right: 3px;}
+
+#sftp-update-browser > .header button, 
+#sftp-update-browser > .header label {
+	display: inline-block; }
+
+
+#sftp-update-browser ul { list-style-type: none; padding: 0; margin: 0; }
+
+#sftp-update-browser ul li.folder > label:before {
+	content: " + ";
+	padding: 4px;
+	margin-right: 4px;
+}
+
+#sftp-update-browser ul li.folder.open > label:before {
+	content: " - ";
+	padding: 4px;
+	margin-right: 4px;
+}
+
+#sftp-update-browser ul li:not(.folder) > label {
+	margin-left: 10px;
+}
+
+#sftp-update-browser ul li.folder > ul {
+	margin-left: 10px;
+}
+
+
+ul.sftp-browser-context-menu {
+	max-height: 620px !important; min-height: 100px; height: auto;
+	overflow: visible;
+}
+.sftp-browser-context-menu li { padding: 3px 0; }
+.sftp-browser-context-menu li:hover {
+	background: rgba(0, 0, 185, 0.5);
+}
+
+#sftp-upload-settings-list-menu {
+	display: none;
+	position: absolute;
+}
