@@ -3,61 +3,115 @@
         <h1 class="dialog-title">{{ Strings.SETTINGS_DIALOG_TITLE }}</h1>
     </div>
     {{#info}}
-    <div class="modal-body table-striped tab-content sftp-upload-server-config-form">
-        <div class="field-container server">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_TYPE }}:
-            </label>
-            <select class="input-method" value="{{method}}">
-                <option value="ftp">{{ Strings.SETTINGS_DIALOG_TYPE_FTP }}</option>
-                <option value="sftp" selected>{{ Strings.SETTINGS_DIALOG_TYPE_SFTP }}</option>
-            </select>
-        </div>
-        <div class="field-container host">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_HOST }}:
-            </label>
-            <input type="text" class="input-host" value="{{host}}"/>
-        </div>
-        <div class="field-container port">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_PORT }}:
-            </label>
-            <input type="text" class="input-port" value="{{port}}"/>
-        </div>
-        <div class="field-container username">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_USERNAME }}:
-            </label>
-            <input type="text" class="input-username" value="{{username}}"/>
-        </div>
-        <div class="field-container rsa-path">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_RSAMSG }}:
-            </label>
-            <input type="text" class="input-rsa-path" placeholder="(optional)" value="{{rsaPath}}"/>
-        </div>
-        <div class="field-container password">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_PASSWORD }}:
-            </label>
-            <input type="password" class="input-password" value="{{password}}"/>
-        </div>
-        <div class="field-container server-path">
-            <label>
-                {{ Strings.SETTINGS_DIALOG_PATH }}:
-            </label>
-            <input type="text" class="input-server-path" value="{{serverPath}}"/>
-        </div>
-        <div class="field-container upload-on-save">
-            <input type="checkbox" class="input-save" value="1" id="input-save-checkbox"/>
-            <label for="input-save-checkbox" style="width:auto;">{{ Strings.SETTINGS_UPLOAD_ON_SAVE }}</label>
+    <div class="modal-body table-striped tab-content sftp-upload-server-config-form sftp-clearfix">
+       <div class="sftp-upload-settings-list-panel">
+       		<h2>
+       			{{ Strings.SETTINGS_DIALOG_SERVER_LIST }}
+       			<button data-button-id="new"  class="dialog-button btn secundary">{{ Strings.SETTINGS_DIALOG_SERVER_NEW }}</button>
+       		</h2>
+       		<ul id="sftpuoload-settings-server-list" class="panel"></ul>
+
+		   <div id="sftp-upload-settings-list-menu" >
+        		<button data-button-id="clone" class="dialog-button btn">{{ Strings.DUPLICATE }}</button>
+				<button data-button-id="remove" class="dialog-button btn">{{ Strings.REMOVE }}</button>
+		   </div>
+       </div>
+       <div class="sftp-upload-settings-list-panel">
+		   <div class="field-container name">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_SERVER_NAME }}:
+				</label>
+				<input type="hidden" class="input-id" value="{{__id}}"/>
+				<input type="text" class="input-name" value="{{name}}"/>
+		   </div>
+			<div class="field-container server">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_TYPE }}:
+				</label>
+				<select class="input-method" value="{{method}}">
+					<option value="ftp">{{ Strings.SETTINGS_DIALOG_TYPE_FTP }}</option>
+					<option value="sftp" selected>{{ Strings.SETTINGS_DIALOG_TYPE_SFTP }}</option>
+				</select>
+			</div>
+			<div class="field-container host">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_HOST }}:
+				</label>
+				<input type="text" class="input-host" value="{{host}}"/>
+			</div>
+			<div class="field-container port">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_PORT }}:
+				</label>
+				<input type="text" class="input-port" value="{{port}}"/>
+			</div>
+			<div class="field-container username">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_USERNAME }}:
+				</label>
+				<input type="text" class="input-username" value="{{username}}"/>
+			</div>
+			<div class="field-container rsa-path">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_RSAMSG }}:
+				</label>
+				<input type="text" class="input-rsa-path" placeholder="(optional)" value="{{rsaPath}}"/>
+			</div>
+			<div class="field-container password">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_PASSWORD }}:
+				</label>
+				<input type="password" class="input-password" value="{{password}}"/>
+			</div>
+			<div class="field-container server-path">
+				<label>
+					{{ Strings.SETTINGS_DIALOG_PATH }}:
+				</label>
+				<input type="text" class="input-server-path" value="{{serverPath}}"/>
+			</div>
+			<div class="field-container upload-on-save checkbox">
+				<label>
+					<input type="checkbox" class="input-save" value="1" id="input-save-checkbox"/>
+					{{ Strings.SETTINGS_UPLOAD_ON_SAVE }}
+				</label>
+			</div>
+			<div class="field-container checkbox">
+				<label>
+					<input name="enable-backup" class="input-backup-enabled" type="checkbox" checked="checkbox"/>
+					{{ Strings.SETTINGS_DIALOG_ENABLE_BACKUP }}
+				</label>
+			</div>
+			<fieldset>
+				<div class="field-container backup-path">
+					<label>
+						{{ Strings.SETTINGS_DIALOG_PATH_BACKUP }}:
+					</label>
+					<input type="text" class="input-backup-path" value="{{backupPath}}"/>
+					<button data-button-id="open-folder"  type="button" class="dialog-button btn open-folder">...</button>
+					<span class="info" title="{{Strings.BACKUP_FILES_FOLDER_HELP}}">?</span>
+				</div>
+				<div class="field-container checkbox backup-by-day">
+					<label>
+						<input type="checkbox" class="input-backup-by-day" />
+						{{ Strings.SETTINGS_DIALOG_BACKUP_BY_DAY }}
+					</label>
+				</div>
+				<div class="field-container checkbox backup-prompt">
+					<label>
+						<input type="checkbox" class="input-backup-prompt" />
+						{{ Strings.SETTINGS_DIALOG_BACKUP_PROMPT }}
+					</label>
+				</div>
+			</fieldset>
         </div>
     </div>
     {{/info}}
 
     <div class="modal-footer">
-        <button data-button-id="ok" class="dialog-button btn primary">{{ Strings.OK }}</button>
+       	<label class="test-connection-status"></label>
+        <button data-button-id="ok" class="dialog-button btn">{{ Strings.OK }}</button>
+        <button data-button-id="save" class="dialog-button btn primary">{{ Strings.SAVE }}</button>
+        <button data-button-id="test" class="dialog-button btn">{{ Strings.TEST_CONNECTION }}</button>
         <button data-button-id="cancel" class="dialog-button btn">{{ Strings.CANCEL }}</button>
     </div>
 </div>
