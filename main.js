@@ -608,9 +608,6 @@ define(function (require, exports, module) {
 	 * Listen for save or refresh and look for todos when needed.
 	 */
 	function registerListeners() {
-		var $documentManager = $(DocumentManager),
-			$projectManager = $(ProjectManager);
-
 		// Listeners bound to Brackets modules.
 		DocumentManager.on('documentSaved.todo', function (event, document) {
 				//TODO: add current document to change list
@@ -838,7 +835,7 @@ define(function (require, exports, module) {
 		status.init();
 
 		// Register for node events
-		$(_nodeDomain)
+		_nodeDomain
 			.on('processing', function(err, jobId) {
 				status.processing(jobId);
 			})
